@@ -719,7 +719,15 @@ async function initializeStripeElements(plan) {
 
         // Create Stripe Elements
         const elements = stripe.elements({
-            clientSecret: clientSecret
+            clientSecret: clientSecret,
+            appearance: {
+                theme: 'stripe',
+                variables: {
+                    colorPrimary: '#6366f1',
+                    borderRadius: '8px',
+                    fontFamily: 'Inter, sans-serif'
+                }
+            }
         });
 
         const paymentElement = elements.create('payment');
@@ -833,7 +841,15 @@ async function initializeStripeSubscription(plan) {
 
         // Create Stripe Elements
         const elements = stripe.elements({
-            clientSecret: clientSecret
+            clientSecret: clientSecret,
+            appearance: {
+                theme: 'stripe',
+                variables: {
+                    colorPrimary: '#6366f1',
+                    borderRadius: '8px',
+                    fontFamily: 'Inter, sans-serif'
+                }
+            }
         });
 
         const paymentElement = elements.create('payment');

@@ -1205,66 +1205,215 @@ section {
 
 .modal-content {
     background-color: white;
-    margin: 2% auto;
-    padding: 2rem;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
+    margin: 5% auto;
+    padding: 2.5rem;
+    border-radius: 16px;
+    width: 95%;
+    max-width: 550px;
     max-height: 90vh;
     position: relative;
-    animation: modalSlideIn 0.3s ease;
+    animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
     overflow-x: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-50px);
+        transform: translateY(-20px) scale(0.95);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
 .close {
     position: absolute;
-    right: 1rem;
-    top: 1rem;
-    font-size: 2rem;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 1.5rem;
     font-weight: bold;
     cursor: pointer;
-    color: #6b7280;
-    transition: color 0.3s ease;
+    color: #9ca3af;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f3f4f6;
+    z-index: 10;
 }
 
 .close:hover {
     color: #1f2937;
+    background: #e5e7eb;
 }
 
 .modal h2 {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: #1f2937;
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 800;
 }
 
-.domain-form {
+/* Payment Modal Form Styling */
+.payment-plan-info {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+.payment-plan-info h3 {
+    font-size: 1.5rem;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.payment-plan-info .price-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.25rem;
+    color: #111827;
+}
+
+.payment-plan-info .currency {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.payment-plan-info .amount {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.payment-plan-info .period {
+    font-size: 1rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+#payment-form,
+#subscription-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.25rem;
 }
 
-.domain-form input {
-    padding: 12px 16px;
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     font-size: 1rem;
+    background-color: #f9fafb;
+    color: #1f2937;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+#payment-element {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+}
+
+#submit-payment,
+#submit-subscription {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    background: #6366f1;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#submit-payment:hover,
+#submit-subscription:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(99, 102, 241, 0.3);
+}
+
+#submit-payment:disabled,
+#submit-subscription:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Domain search styles preserved formatting */
+.domain-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.domain-form input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #f9fafb;
+    transition: all 0.2s ease;
 }
 
 .domain-form input:focus {
     outline: none;
     border-color: #6366f1;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 #domainResults {
