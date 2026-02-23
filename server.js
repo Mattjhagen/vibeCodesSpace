@@ -51,7 +51,7 @@ app.use(express.json());
 app.post('/api/create-payment-intent', async (req, res) => {
     try {
         const { amount, currency = 'usd', plan } = req.body;
-        
+
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount, // Amount in cents
             currency: currency,
@@ -73,7 +73,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
 app.post('/api/create-subscription', async (req, res) => {
     try {
         const { price, currency = 'usd', plan } = req.body;
-        
+
         // Create a price object for the subscription
         const stripePrice = await stripe.prices.create({
             unit_amount: price, // Amount in cents
@@ -101,7 +101,7 @@ app.post('/api/create-subscription', async (req, res) => {
 });
 
 // Webhook endpoint for Stripe events
-app.post('/api/webhook', express.raw({type: 'application/json'}), (req, res) => {
+app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
     const sig = req.headers['stripe-signature'];
     let event;
 
@@ -127,12 +127,19 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), (req, res) => 
             console.log(`Unhandled event type ${event.type}`);
     }
 
-    res.json({received: true});
+    res.json({ received: true });
 });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Stripe payment server is running' });
+});
+
+// Config endpoint exposing safe variables
+app.get('/api/config', (req, res) => {
+    res.json({
+        stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+    });
 });
 
 // Status endpoint
@@ -144,7 +151,7 @@ app.get('/api/status', (req, res) => {
 app.post('/api/check-domain', async (req, res) => {
     try {
         const { domain } = req.body;
-        
+
         if (!domain) {
             return res.status(400).json({ error: 'Domain name is required' });
         }
@@ -155,7 +162,7 @@ app.post('/api/check-domain', async (req, res) => {
         const resultNamecom = await namecom.checkDomainAvailability(domain);
 
         res.json({ dynadot: resultDyn, namecom: resultNamecom });
-        
+
     } catch (error) {
         console.error('Error checking domain:', error);
         res.status(500).json({ error: 'Error checking domain availability' });
@@ -166,7 +173,7 @@ app.post('/api/check-domain', async (req, res) => {
 app.post('/api/create-domain-payment', async (req, res) => {
     try {
         const { domain, price, currency = 'usd' } = req.body;
-        
+
         const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(price * 100), // Convert to cents
             currency: currency,

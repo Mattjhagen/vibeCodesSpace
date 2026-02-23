@@ -10,14 +10,34 @@ const CONFIG = {
     BASE_URL: 'https://www.cmameet.site'
 };
 
-// Initialize Stripe (replace with your publishable key)
+// Initialize Stripe dynamically
 let stripe;
-try {
-    stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
-} catch (error) {
-    console.warn('Stripe initialization failed:', error);
-    // Fallback for demo mode
-    stripe = null;
+let stripeInitialized = false;
+
+async function initStripe() {
+    if (stripeInitialized) return;
+    try {
+        const response = await fetch(`${CONFIG.BACKEND_URL}/config`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.stripePublishableKey) {
+                stripe = Stripe(data.stripePublishableKey);
+                stripeInitialized = true;
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to fetch dynamic Stripe config:', e);
+    }
+
+    // Fallback
+    try {
+        stripe = Stripe(CONFIG.STRIPE_PUBLISHABLE_KEY);
+    } catch (error) {
+        console.warn('Stripe fallback initialization failed:', error);
+        stripe = null;
+    }
+    stripeInitialized = true;
 }
 
 // Pricing configuration
@@ -63,7 +83,7 @@ const inlineCheckDomainBtn = document.getElementById('inlineCheckDomain');
 const inlineDomainResults = document.getElementById('inlineDomainResults');
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initializeNavigation();
     initializePricingButtons();
     initializeModals();
@@ -81,28 +101,28 @@ function openDomainModal() {
 // Initialize inline domain search
 function initializeInlineDomainSearch() {
     if (inlineCheckDomainBtn) {
-        inlineCheckDomainBtn.addEventListener('click', function() {
+        inlineCheckDomainBtn.addEventListener('click', function () {
             const domainName = inlineDomainNameInput.value.trim();
-            
+
             if (!domainName) {
                 alert('Please enter a domain name');
                 return;
             }
-            
+
             // Validate domain format
             const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
             if (!domainRegex.test(domainName)) {
                 alert('Please enter a valid domain name (e.g., example.com)');
                 return;
             }
-            
+
             checkInlineDomainAvailability(domainName);
         });
     }
-    
+
     // Allow Enter key to trigger domain check
     if (inlineDomainNameInput) {
-        inlineDomainNameInput.addEventListener('keypress', function(e) {
+        inlineDomainNameInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 inlineCheckDomainBtn.click();
             }
@@ -113,10 +133,10 @@ function initializeInlineDomainSearch() {
 // Check domain availability for inline search
 async function checkInlineDomainAvailability(domainName) {
     const resultsDiv = inlineDomainResults;
-    
+
     // Show loading state
     resultsDiv.innerHTML = '<div class="domain-result-inline"><p><i class="fas fa-spinner fa-spin"></i> Checking domain availability...</p></div>';
-    
+
     try {
         const response = await fetch(`${CONFIG.BACKEND_URL}/check-domain`, {
             method: 'POST',
@@ -128,10 +148,10 @@ async function checkInlineDomainAvailability(domainName) {
                 apiKey: CONFIG.DYNADOT_API_KEY
             })
         });
-        
+
         const data = await response.json();
         displayInlineDomainResults(data);
-        
+
     } catch (error) {
         console.error('Error checking domain:', error);
         resultsDiv.innerHTML = `
@@ -146,7 +166,7 @@ async function checkInlineDomainAvailability(domainName) {
 // Display inline domain search results
 function displayInlineDomainResults(data) {
     const resultsDiv = inlineDomainResults;
-    
+
     if (data.available) {
         const price = data.price || 'Contact for pricing';
         resultsDiv.innerHTML = `
@@ -177,14 +197,14 @@ function initializeNavigation() {
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
 
-    hamburger.addEventListener('click', function() {
+    hamburger.addEventListener('click', function () {
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
     });
 
     // Close mobile menu when clicking on a link
     document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function () {
             hamburger.classList.remove('active');
             navMenu.classList.remove('active');
         });
@@ -192,7 +212,7 @@ function initializeNavigation() {
 
     // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -205,7 +225,7 @@ function initializeNavigation() {
     });
 
     // Navbar background on scroll
-    window.addEventListener('scroll', function() {
+    window.addEventListener('scroll', function () {
         const navbar = document.querySelector('.navbar');
         if (window.scrollY > 100) {
             navbar.style.background = 'rgba(255, 255, 255, 0.98)';
@@ -218,7 +238,7 @@ function initializeNavigation() {
 // Pricing buttons functionality
 function initializePricingButtons() {
     document.querySelectorAll('.pricing-btn, .maintenance-btn').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const plan = this.getAttribute('data-plan');
             if (plan) {
                 openPaymentModal(plan);
@@ -233,21 +253,21 @@ function initializePricingButtons() {
 function initializeModals() {
     // Close modals when clicking the X
     document.querySelectorAll('.close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', function() {
+        closeBtn.addEventListener('click', function () {
             const modal = this.closest('.modal');
             modal.style.display = 'none';
         });
     });
 
     // Close modals when clicking outside
-    window.addEventListener('click', function(e) {
+    window.addEventListener('click', function (e) {
         if (e.target.classList.contains('modal')) {
             e.target.style.display = 'none';
         }
     });
 
     // Close modals with Escape key
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.style.display = 'none';
@@ -260,49 +280,49 @@ function initializeModals() {
 function initializePortfolioImages() {
     const portfolioImages = document.querySelectorAll('.portfolio-image img');
     const portfolioScreenshots = document.querySelectorAll('.portfolio-screenshot');
-    
+
     // Handle screenshot images
     portfolioScreenshots.forEach(img => {
-        img.addEventListener('load', function() {
+        img.addEventListener('load', function () {
             const fallback = this.nextElementSibling;
             if (fallback && fallback.classList.contains('portfolio-fallback')) {
                 fallback.style.display = 'none';
             }
         });
-        
-        img.addEventListener('error', function() {
+
+        img.addEventListener('error', function () {
             this.style.display = 'none';
             const fallback = this.nextElementSibling;
             if (fallback && fallback.classList.contains('portfolio-fallback')) {
                 fallback.style.display = 'flex';
             }
         });
-        
+
         // Show fallback initially, hide when image loads
         const fallback = img.nextElementSibling;
         if (fallback && fallback.classList.contains('portfolio-fallback')) {
             fallback.style.display = 'flex';
         }
     });
-    
+
     // Handle image fallbacks (for backward compatibility)
     portfolioImages.forEach(img => {
         // Check if image loads successfully
-        img.addEventListener('load', function() {
+        img.addEventListener('load', function () {
             const fallback = this.nextElementSibling;
             if (fallback && fallback.classList.contains('portfolio-fallback')) {
                 fallback.style.display = 'none';
             }
         });
-        
-        img.addEventListener('error', function() {
+
+        img.addEventListener('error', function () {
             this.style.display = 'none';
             const fallback = this.nextElementSibling;
             if (fallback && fallback.classList.contains('portfolio-fallback')) {
                 fallback.style.display = 'flex';
             }
         });
-        
+
         // If image src is empty or invalid, show fallback immediately
         if (!img.src || img.src.includes('placeholder') || img.src.endsWith('.jpg')) {
             img.style.display = 'none';
@@ -316,26 +336,26 @@ function initializePortfolioImages() {
 
 // Domain search functionality
 function initializeDomainSearch() {
-    checkDomainBtn.addEventListener('click', function() {
+    checkDomainBtn.addEventListener('click', function () {
         const domainName = domainNameInput.value.trim();
-        
+
         if (!domainName) {
             alert('Please enter a domain name');
             return;
         }
-        
+
         // Validate domain format
         const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]?\.[a-zA-Z]{2,}$/;
         if (!domainRegex.test(domainName)) {
             alert('Please enter a valid domain name (e.g., example.com)');
             return;
         }
-        
+
         checkDomainAvailability(domainName);
     });
-    
+
     // Allow Enter key to trigger domain check
-    domainNameInput.addEventListener('keypress', function(e) {
+    domainNameInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             checkDomainBtn.click();
         }
@@ -346,7 +366,7 @@ function initializeDomainSearch() {
 async function checkDomainAvailability(domainName) {
     const resultsDiv = domainResults;
     resultsDiv.innerHTML = '<div class="loading">Checking availability...</div>';
-    
+
     try {
         // Note: In a real implementation, you would make this call from your backend
         // to keep your API key secure
@@ -360,10 +380,10 @@ async function checkDomainAvailability(domainName) {
                 apiKey: CONFIG.DYNADOT_API_KEY
             })
         });
-        
+
         const data = await response.json();
         displayDomainResults(data);
-        
+
     } catch (error) {
         console.error('Error checking domain:', error);
         resultsDiv.innerHTML = `
@@ -378,11 +398,11 @@ async function checkDomainAvailability(domainName) {
 // Display domain search results
 function displayDomainResults(data) {
     const resultsDiv = domainResults;
-    
+
     if (data.available) {
         const price = data.price || 12.99; // Default price if not provided
         const commission = (price * CONFIG.COMMISSION_RATE).toFixed(2);
-        
+
         resultsDiv.innerHTML = `
             <div class="domain-result available">
                 <h4>✅ ${data.domain} is available!</h4>
@@ -413,7 +433,7 @@ async function purchaseDomain(domainName, price) {
         if (domainModal && domainModal.style.display === 'block') {
             domainModal.style.display = 'none';
             document.body.style.overflow = 'auto';
-            
+
             // Small delay to ensure smooth transition
             setTimeout(() => {
                 showDomainPaymentModal(domainName, price);
@@ -422,7 +442,7 @@ async function purchaseDomain(domainName, price) {
             // Show payment modal immediately if no domain modal is open
             showDomainPaymentModal(domainName, price);
         }
-        
+
     } catch (error) {
         console.error('Error purchasing domain:', error);
         alert('Error purchasing domain. Please try again.');
@@ -435,9 +455,9 @@ function showDomainPaymentModal(domainName, price) {
     const modal = document.getElementById('paymentModal');
     const modalTitle = modal.querySelector('h2');
     const paymentForm = document.getElementById('paymentForm');
-    
+
     modalTitle.textContent = `Purchase Domain: ${domainName}`;
-    
+
     // Create domain payment form
     paymentForm.innerHTML = `
         <div class="domain-purchase-info">
@@ -454,11 +474,11 @@ function showDomainPaymentModal(domainName, price) {
             <!-- Stripe payment form will be loaded here -->
         </div>
     `;
-    
+
     // Show modal
     modal.style.display = 'block';
     document.body.style.overflow = 'hidden';
-    
+
     // Initialize Stripe payment for domain
     initializeDomainPayment(domainName, price);
 }
@@ -466,10 +486,11 @@ function showDomainPaymentModal(domainName, price) {
 // Initialize domain payment with Stripe
 async function initializeDomainPayment(domainName, price) {
     try {
+        await initStripe();
         if (!stripe) {
             throw new Error('Stripe not initialized');
         }
-        
+
         // Create payment intent for domain purchase
         const response = await fetch(`${CONFIG.BACKEND_URL}/create-domain-payment`, {
             method: 'POST',
@@ -482,13 +503,13 @@ async function initializeDomainPayment(domainName, price) {
                 currency: 'usd'
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to create payment intent');
         }
-        
+
         const { clientSecret } = await response.json();
-        
+
         // Create Stripe Elements
         const elements = stripe.elements({
             clientSecret: clientSecret,
@@ -499,11 +520,11 @@ async function initializeDomainPayment(domainName, price) {
                 }
             }
         });
-        
+
         // Create payment element
         const paymentElement = elements.create('payment');
         paymentElement.mount('#domainPaymentForm');
-        
+
         // Handle form submission
         const form = document.createElement('form');
         form.id = 'domainPaymentFormElement';
@@ -512,16 +533,16 @@ async function initializeDomainPayment(domainName, price) {
                 <i class="fas fa-credit-card"></i> Complete Purchase - $${(price + (price * CONFIG.COMMISSION_RATE)).toFixed(2)}
             </button>
         `;
-        
+
         document.getElementById('domainPaymentForm').appendChild(form);
-        
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            
+
             const submitButton = form.querySelector('button');
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-            
+
             try {
                 const { error } = await stripe.confirmPayment({
                     elements,
@@ -529,14 +550,14 @@ async function initializeDomainPayment(domainName, price) {
                         return_url: `${CONFIG.BASE_URL}/success.html?domain=${encodeURIComponent(domainName)}`,
                     },
                 });
-                
+
                 if (error) {
                     console.error('Payment failed:', error);
                     alert(`Payment failed: ${error.message}`);
                     submitButton.disabled = false;
                     submitButton.innerHTML = '<i class="fas fa-credit-card"></i> Complete Purchase';
                 }
-                
+
             } catch (error) {
                 console.error('Payment error:', error);
                 alert('Payment error. Please try again.');
@@ -544,7 +565,7 @@ async function initializeDomainPayment(domainName, price) {
                 submitButton.innerHTML = '<i class="fas fa-credit-card"></i> Complete Purchase';
             }
         });
-        
+
     } catch (error) {
         console.error('Error initializing domain payment:', error);
         document.getElementById('domainPaymentForm').innerHTML = `
@@ -563,9 +584,9 @@ function openPaymentModal(planKey) {
         console.error('Invalid plan:', planKey);
         return;
     }
-    
+
     paymentModal.style.display = 'block';
-    
+
     // Create payment form based on plan type
     if (plan.type === 'one-time') {
         createOneTimePaymentForm(plan);
@@ -617,7 +638,7 @@ function createOneTimePaymentForm(plan) {
             </button>
         </form>
     `;
-    
+
     initializeStripeElements(plan);
 }
 
@@ -664,13 +685,14 @@ function createSubscriptionForm(plan) {
             </button>
         </form>
     `;
-    
+
     initializeStripeSubscription(plan);
 }
 
 // Initialize Stripe Elements for one-time payments
 async function initializeStripeElements(plan) {
     try {
+        await initStripe();
         // Check if Stripe is available
         if (!stripe) {
             throw new Error('Stripe not initialized');
@@ -688,37 +710,37 @@ async function initializeStripeElements(plan) {
                 plan: plan.name
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to create payment intent');
         }
-        
+
         const { clientSecret } = await response.json();
-        
+
         // Create Stripe Elements
         const elements = stripe.elements({
             clientSecret: clientSecret
         });
-        
+
         const paymentElement = elements.create('payment');
         paymentElement.mount('#payment-element');
-        
+
         // Handle form submission
         const form = document.getElementById('payment-form');
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            
+
             const submitButton = document.getElementById('submit-payment');
             submitButton.disabled = true;
             submitButton.textContent = 'Processing...';
-            
+
             const { error } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
                     return_url: `${CONFIG.BASE_URL}/esign.html`,
                 },
             });
-            
+
             if (error) {
                 console.error('Payment failed:', error);
                 alert('Payment failed. Please try again.');
@@ -726,7 +748,7 @@ async function initializeStripeElements(plan) {
                 submitButton.textContent = `Pay $${plan.price.toLocaleString()}`;
             }
         });
-        
+
     } catch (error) {
         console.error('Error initializing payment:', error);
         // Fallback to demo mode
@@ -763,16 +785,16 @@ function showDemoPaymentForm(plan) {
             </div>
         </div>
     `;
-    
+
     // Handle form submission
     const form = document.getElementById('payment-form');
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        
+
         const submitButton = document.getElementById('submit-payment');
         submitButton.disabled = true;
         submitButton.textContent = 'Processing...';
-        
+
         // Simulate payment processing
         setTimeout(() => {
             // Redirect to e-signature form
@@ -784,6 +806,7 @@ function showDemoPaymentForm(plan) {
 // Initialize Stripe subscription
 async function initializeStripeSubscription(plan) {
     try {
+        await initStripe();
         // Check if Stripe is available
         if (!stripe) {
             throw new Error('Stripe not initialized');
@@ -801,37 +824,37 @@ async function initializeStripeSubscription(plan) {
                 plan: plan.name
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to create subscription');
         }
-        
+
         const { clientSecret } = await response.json();
-        
+
         // Create Stripe Elements
         const elements = stripe.elements({
             clientSecret: clientSecret
         });
-        
+
         const paymentElement = elements.create('payment');
         paymentElement.mount('#payment-element');
-        
+
         // Handle form submission
         const form = document.getElementById('subscription-form');
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
-            
+
             const submitButton = document.getElementById('submit-subscription');
             submitButton.disabled = true;
             submitButton.textContent = 'Processing...';
-            
+
             const { error } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
                     return_url: `${CONFIG.BASE_URL}/esign.html`,
                 },
             });
-            
+
             if (error) {
                 console.error('Subscription failed:', error);
                 alert('Subscription failed. Please try again.');
@@ -839,7 +862,7 @@ async function initializeStripeSubscription(plan) {
                 submitButton.textContent = `Subscribe for $${plan.price}/month`;
             }
         });
-        
+
     } catch (error) {
         console.error('Error initializing subscription:', error);
         // Fallback to demo mode
@@ -876,16 +899,16 @@ function showDemoSubscriptionForm(plan) {
             </div>
         </div>
     `;
-    
+
     // Handle form submission
     const form = document.getElementById('subscription-form');
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        
+
         const submitButton = document.getElementById('submit-subscription');
         submitButton.disabled = true;
         submitButton.textContent = 'Processing...';
-        
+
         // Simulate subscription processing
         setTimeout(() => {
             // Redirect to e-signature form
@@ -917,7 +940,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
+
     // Style the notification
     notification.style.cssText = `
         position: fixed;
@@ -931,9 +954,9 @@ function showNotification(message, type = 'info') {
         z-index: 3000;
         animation: slideIn 0.3s ease;
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Remove notification after 5 seconds
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease';
