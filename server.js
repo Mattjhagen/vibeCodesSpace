@@ -295,6 +295,8 @@ app.use((req, res, next) => {
         res.setHeader('Content-Type', 'application/xml');
     } else if (req.path === '/llms.txt') {
         res.setHeader('Content-Type', 'text/plain');
+    } else if (req.path === '/indexnow-key.txt') {
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     }
     next();
 });
@@ -303,6 +305,17 @@ app.use((req, res, next) => {
 app.get('/sitemap', (req, res) => {
     res.setHeader('Content-Type', 'application/xml');
     res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
+// Serve IndexNow key file for verification
+app.get('/indexnow-key.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    const keyPath = path.join(__dirname, 'indexnow-key.txt');
+    if (fs.existsSync(keyPath)) {
+        res.sendFile(keyPath);
+    } else {
+        res.status(404).send('IndexNow key file not found');
+    }
 });
 
 // Serve published static sites
