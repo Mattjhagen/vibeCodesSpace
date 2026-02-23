@@ -1,0 +1,56 @@
+# llms.txt - AI Search Optimization for Vibecodes.space
+
+# About
+Vibecodes.space is a professional web design and development service offering custom websites, responsive design, SEO optimization, and ongoing maintenance.
+
+# Contact
+Email: matty@pacmacmobile.com
+Phone: (402) 915-1434
+
+# Services
+- Custom Web Design: Unique, modern designs tailored to your brand and business goals
+- Responsive Development: Mobile-first approach ensuring your site looks perfect on all devices
+- SEO Optimization: Built-in SEO features to help your website rank higher in search results
+- Maintenance & Support: Ongoing support to keep your website secure, updated, and running smoothly
+- Domain Registration: Find and register the perfect domain name for your business
+
+# Pricing
+- Basic Website: $2,500 (one-time) - Up to 5 pages, responsive design, basic SEO setup, contact form, 1 month support
+- Professional Website: $3,500 (one-time) - Up to 10 pages, custom design, advanced SEO, CMS integration, 3 months support
+- Premium Website: $4,500 (one-time) - Unlimited pages, e-commerce features, custom functionality, payment integration, 6 months support
+- Basic Maintenance: $150/month - Website hosting, security updates, backup management, basic content updates
+
+# Portfolio Highlights
+- PackieAI: AI-powered phone scam protection platform
+- VibeCode: AI-powered platform that generates web applications from simple text descriptions
+- Omaha Housing Campaign: Community-driven fundraising platform
+- Hagen Blacksmithing: North Dakota's master blacksmith creating exceptional ironwork
+- P3 Lending: Decentralized peer-to-peer lending platform
+- Global Nexus: AI tools and services hub
+- NexusMail AI: Database configuration interface
+- FinchWire: Substrate Daily - A tiny newswire and daily briefing
+- IceStorm: Community Safety Network monitoring interface
+- EP Files Analysis: Forensic Analysis of the January 30, 2026 Department of Justice Epstein Files Release
+
+# Social Links
+LinkedIn: https://www.linkedin.com/in/mattjhagen/
+GitHub: https://github.com/Mattjhagen
+WhatsApp: https://wa.me/14023022197
+Discord: https://discord.gg/FnfhmdVmCu
+Facebook: https://www.facebook.com
+
+# Key Pages
+Home: https://vibecodes.space/
+Privacy Policy: https://vibecodes.space/privacy.html
+
+# Technology Stack
+- Frontend: HTML5, CSS3, JavaScript
+- Payment Processing: Stripe
+- Domain Services: Dynadot API, Name.com integration
+- Backend: Node.js, Express
+
+# Business Information
+Organization: Packie CSS Custom Web Design & Development
+Alternate Name: Vibecodes.space
+Service Area: Worldwide
+Industry: Web Design and Development

@@ -153,6 +153,31 @@ Update the contact details in the contact section of `index.html`.
 
 For technical support or customization requests, please contact [matty@pacmacmobile.com].
 
+## SEO & Search Engine Submission
+
+This website has been optimized for Google, Bing, and AI search engines with:
+- Comprehensive meta tags (Open Graph, Twitter Cards)
+- JSON-LD structured data (Organization, WebSite, Service schemas)
+- Sitemap.xml and robots.txt
+- llms.txt for AI search optimization
+
+### Quick Submission Guide
+
+1. **Google Search Console**: 
+   - Visit: https://search.google.com/search-console
+   - Add property: `https://vibecodes.space`
+   - Verify ownership and submit sitemap: `sitemap.xml`
+
+2. **Bing Webmaster Tools**:
+   - Visit: https://www.bing.com/webmasters
+   - Add site: `https://vibecodes.space`
+   - Verify ownership and submit sitemap: `https://vibecodes.space/sitemap.xml`
+
+For detailed instructions, see:
+- **Full Guide**: `SEO_SUBMISSION_GUIDE.md`
+- **Helper Page**: `submit-search-engines.html` (open in browser)
+- **Ping Script**: `node ping-search-engines.js` (optional notification)
+
 ## License
 
 This project is licensed under the MIT License.

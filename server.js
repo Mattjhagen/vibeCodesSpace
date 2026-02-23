@@ -282,8 +282,34 @@ app.post('/api/namecom/register', authMiddleware, async (req, res) => {
     }
 });
 
+// SEO-friendly headers middleware (must be before static files)
+app.use((req, res, next) => {
+    // Set cache headers for static assets
+    if (req.path.match(/\.(jpg|jpeg|png|gif|ico|svg|css|js|woff|woff2|ttf|eot)$/)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    // Set proper content types for SEO files
+    if (req.path === '/robots.txt') {
+        res.setHeader('Content-Type', 'text/plain');
+    } else if (req.path === '/sitemap.xml' || req.path === '/sitemap') {
+        res.setHeader('Content-Type', 'application/xml');
+    } else if (req.path === '/llms.txt') {
+        res.setHeader('Content-Type', 'text/plain');
+    }
+    next();
+});
+
+// Serve sitemap at both /sitemap.xml and /sitemap (for Google and Bing)
+app.get('/sitemap', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml');
+    res.sendFile(path.join(__dirname, 'sitemap.xml'));
+});
+
 // Serve published static sites
 app.use('/published', express.static(path.join(__dirname, 'sites')));
+
+// Serve static files from root (for SEO files like robots.txt, sitemap.xml, llms.txt)
+app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
