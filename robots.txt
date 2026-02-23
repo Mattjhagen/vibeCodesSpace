@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /published/
+Disallow: /studio/
+Disallow: /studio-react/
+Disallow: /templates/
+Disallow: /*.json$
+
+# Sitemap
+Sitemap: https://vibecodes.space/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+Crawl-delay: 1
