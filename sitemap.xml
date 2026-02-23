@@ -4,7 +4,7 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
     
-    <!-- Homepage -->
+    <!-- Homepage - Main Landing Page -->
     <url>
         <loc>https://vibecodes.space/</loc>
         <lastmod>2026-02-23</lastmod>
@@ -18,6 +18,22 @@
         <lastmod>2026-02-23</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.5</priority>
+    </url>
+    
+    <!-- E-Sign Form -->
+    <url>
+        <loc>https://vibecodes.space/esign.html</loc>
+        <lastmod>2026-02-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+    
+    <!-- SMS Opt-in Form -->
+    <url>
+        <loc>https://vibecodes.space/sms-optin-form.html</loc>
+        <lastmod>2026-02-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
     </url>
     
 </urlset>

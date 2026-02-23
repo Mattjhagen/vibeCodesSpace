@@ -7,8 +7,9 @@ Disallow: /studio-react/
 Disallow: /templates/
 Disallow: /*.json$
 
-# Sitemap
+# Sitemap (both URLs work for Google and Bing)
 Sitemap: https://vibecodes.space/sitemap.xml
+Sitemap: https://vibecodes.space/sitemap
 
 # Crawl-delay (optional, helps prevent server overload)
 Crawl-delay: 1
