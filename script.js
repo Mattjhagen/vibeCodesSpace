@@ -832,7 +832,7 @@ async function initializeStripeSubscription(plan) {
             submitButton.disabled = true;
             submitButton.textContent = 'Processing...';
 
-            const { error } = await stripe.confirmPayment({
+            const { error } = await stripe.confirmSetup({
                 elements,
                 confirmParams: {
                     return_url: `${CONFIG.BASE_URL}/esign.html`,
