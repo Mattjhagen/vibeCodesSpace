@@ -45,6 +45,33 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
+
+// Stripe webhook must get raw body (register before express.json())
+app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.log(`Webhook signature verification failed.`, err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    switch (event.type) {
+        case 'payment_intent.succeeded':
+            console.log('Payment succeeded:', event.data.object.id);
+            break;
+        case 'payment_method.attached':
+            console.log('PaymentMethod attached to Customer');
+            break;
+        default:
+            console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
+});
+
 app.use(express.json());
 
 // Create payment intent for one-time payments
@@ -98,36 +125,6 @@ app.post('/api/create-subscription', async (req, res) => {
         console.error('Error creating subscription:', error);
         res.status(500).json({ error: error.message });
     }
-});
-
-// Webhook endpoint for Stripe events
-app.post('/api/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    let event;
-
-    try {
-        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-        console.log(`Webhook signature verification failed.`, err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-
-    // Handle the event
-    switch (event.type) {
-        case 'payment_intent.succeeded':
-            const paymentIntent = event.data.object;
-            console.log('Payment succeeded:', paymentIntent.id);
-            // Handle successful payment
-            break;
-        case 'payment_method.attached':
-            const paymentMethod = event.data.object;
-            console.log('PaymentMethod was attached to a Customer!');
-            break;
-        default:
-            console.log(`Unhandled event type ${event.type}`);
-    }
-
-    res.json({ received: true });
 });
 
 // Health check endpoint

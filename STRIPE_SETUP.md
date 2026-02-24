@@ -19,19 +19,16 @@
    cp env.template .env
    ```
 
-2. Edit `.env` and replace the placeholder values:
+2. Edit `.env` and replace with your **live** keys for production:
    ```
-   STRIPE_SECRET_KEY=sk_test_your_actual_secret_key_here
-   STRIPE_PUBLISHABLE_KEY=pk_test_your_actual_publishable_key_here
-   STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+   STRIPE_SECRET_KEY=sk_live_...
+   STRIPE_PUBLISHABLE_KEY=pk_live_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
    PORT=3001
-   NODE_ENV=development
+   NODE_ENV=production
    ```
 
-3. Update `script.js` line 7 with your publishable key:
-   ```javascript
-   STRIPE_PUBLISHABLE_KEY: 'pk_test_your_actual_key_here',
-   ```
+3. The frontend (`script.js`) already uses the live publishable key; the backend (e.g. Render) must have the same live keys in its environment so `/api/create-payment-intent` and `/api/config` use live mode.
 
 ## Step 3: Install Dependencies
 
@@ -74,12 +71,20 @@ For production:
 3. Update `BACKEND_URL` in script.js to your production URL
 4. Set up webhooks in Stripe Dashboard
 
-## Webhook Setup (Optional)
+## Webhook Setup (recommended for production)
 
-1. In Stripe Dashboard, go to Developers > Webhooks
-2. Add endpoint: `https://yourdomain.com/api/webhook`
-3. Select events: `payment_intent.succeeded`, `payment_method.attached`
-4. Copy webhook secret to your `.env` file
+Webhooks let your backend react to payment success even if the user closes the browser before the redirect.
+
+1. **Stripe Dashboard** → [Developers → Webhooks](https://dashboard.stripe.com/webhooks) → **Add endpoint**.
+2. **Endpoint URL:** `https://packie-designs.onrender.com/api/webhook` (your Render backend + `/api/webhook`).
+3. **Events to send:** Click “Select events” and add:
+   - `payment_intent.succeeded`
+   - `payment_method.attached`
+4. **Add endpoint** → Stripe shows a **Signing secret** (starts with `whsec_`). Copy it.
+5. **Render** → Your service → **Environment** → add:
+   - Key: `STRIPE_WEBHOOK_SECRET`
+   - Value: `whsec_...` (the signing secret you copied)
+6. **Save** and redeploy the service so the new env var is loaded.
 
 ## Troubleshooting
 

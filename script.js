@@ -1,13 +1,11 @@
-// Configuration
+// Configuration - live Stripe keys (backend must use matching sk_live_ in env)
 const CONFIG = {
-    // Replace with your actual Stripe publishable key
-    STRIPE_PUBLISHABLE_KEY: 'pk_live_51RgRBRG6ZGE2Rl3oAODxJMejteYv858nAPO5OkhMycDqT1zRIhnYnT47KAt4EaWAev2QKeQbIM6YVfXEpkJxXz7B0080qNWNbM', // Live Stripe publishable key
+    STRIPE_PUBLISHABLE_KEY: 'pk_live_51RgRBRG6ZGE2Rl3oAODxJMejteYv858nAPO5OkhMycDqT1zRIhnYnT47KAt4EaWAev2QKeQbIM6YVfXEpkJxXz7B0080qNWNbM',
     DYNADOT_API_KEY: '8z9R6Z7D8i8JF84LE7P8g7j9J9W706n9R9F6YRa7E7X',
     DYNADOT_API_URL: 'https://storefront457991568429.gdg.website',
-    BACKEND_URL: 'https://packie-designs.onrender.com/api', // Render backend for production
-    COMMISSION_RATE: 0.15, // 15% commission on domain sales
-    // Base URL for return URLs - use production URL for Stripe compatibility
-    BASE_URL: 'https://www.cmameet.site'
+    BACKEND_URL: 'https://packie-designs.onrender.com/api',
+    COMMISSION_RATE: 0.15,
+    BASE_URL: 'https://vibecodes.space'  // Stripe return_url and redirects
 };
 
 // Initialize Stripe dynamically
@@ -759,55 +757,25 @@ async function initializeStripeElements(plan) {
 
     } catch (error) {
         console.error('Error initializing payment:', error);
-        // Fallback to demo mode
-        showDemoPaymentForm(plan);
+        showPaymentError(plan, 'one-time');
     }
 }
 
-// Demo payment form fallback
-function showDemoPaymentForm(plan) {
+// Show error when Stripe/live payment cannot be loaded (no demo form)
+function showPaymentError(plan, type) {
     const paymentElement = document.getElementById('payment-element');
+    const isSubscription = type === 'subscription';
     paymentElement.innerHTML = `
-        <div class="demo-payment-form">
-            <div class="payment-info">
-                <h4>Demo Payment Form</h4>
-                <p>This is a demonstration of the payment flow. In production, this would connect to Stripe.</p>
-            </div>
-            <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="expiry">Expiry</label>
-                    <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label for="cvc">CVC</label>
-                    <input type="text" id="cvc" placeholder="123" maxlength="4">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cardholder-name">Cardholder Name</label>
-                <input type="text" id="cardholder-name" placeholder="John Doe">
-            </div>
+        <div class="payment-error-box">
+            <h4>Payment system temporarily unavailable</h4>
+            <p>We couldn't connect to secure checkout. Please try again in a moment or contact us to complete your order.</p>
+            <button type="button" class="btn btn-primary" id="retry-payment-btn">Try again</button>
         </div>
     `;
-
-    // Handle form submission
-    const form = document.getElementById('payment-form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const submitButton = document.getElementById('submit-payment');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        // Simulate payment processing
-        setTimeout(() => {
-            // Redirect to e-signature form
-            window.location.href = 'esign.html';
-        }, 2000);
+    document.getElementById('retry-payment-btn').addEventListener('click', () => {
+        paymentElement.innerHTML = '<div class="payment-loading">Loading checkout…</div>';
+        if (isSubscription) initializeStripeSubscription(plan);
+        else initializeStripeElements(plan);
     });
 }
 
@@ -881,56 +849,8 @@ async function initializeStripeSubscription(plan) {
 
     } catch (error) {
         console.error('Error initializing subscription:', error);
-        // Fallback to demo mode
-        showDemoSubscriptionForm(plan);
+        showPaymentError(plan, 'subscription');
     }
-}
-
-// Demo subscription form fallback
-function showDemoSubscriptionForm(plan) {
-    const paymentElement = document.getElementById('payment-element');
-    paymentElement.innerHTML = `
-        <div class="demo-payment-form">
-            <div class="payment-info">
-                <h4>Demo Subscription Form</h4>
-                <p>This is a demonstration of the subscription flow. In production, this would connect to Stripe.</p>
-            </div>
-            <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="expiry">Expiry</label>
-                    <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label for="cvc">CVC</label>
-                    <input type="text" id="cvc" placeholder="123" maxlength="4">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cardholder-name">Cardholder Name</label>
-                <input type="text" id="cardholder-name" placeholder="John Doe">
-            </div>
-        </div>
-    `;
-
-    // Handle form submission
-    const form = document.getElementById('subscription-form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const submitButton = document.getElementById('submit-subscription');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        // Simulate subscription processing
-        setTimeout(() => {
-            // Redirect to e-signature form
-            window.location.href = 'esign.html';
-        }, 2000);
-    });
 }
 
 // Close payment modal
@@ -1051,6 +971,21 @@ style.textContent = `
     
     .demo-payment-form {
         padding: 1rem 0;
+    }
+    
+    .payment-error-box {
+        padding: 1.5rem;
+        text-align: center;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+    }
+    .payment-error-box h4 { margin: 0 0 0.5rem 0; color: #991b1b; }
+    .payment-error-box p { margin: 0 0 1rem 0; color: #7f1d1d; font-size: 0.875rem; }
+    .payment-loading {
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
     }
     
     .payment-info {
