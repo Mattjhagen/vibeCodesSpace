@@ -3,7 +3,7 @@ const CONFIG = {
     STRIPE_PUBLISHABLE_KEY: 'pk_live_51RgRBRG6ZGE2Rl3oAODxJMejteYv858nAPO5OkhMycDqT1zRIhnYnT47KAt4EaWAev2QKeQbIM6YVfXEpkJxXz7B0080qNWNbM',
     DYNADOT_API_KEY: '8z9R6Z7D8i8JF84LE7P8g7j9J9W706n9R9F6YRa7E7X',
     DYNADOT_API_URL: 'https://storefront457991568429.gdg.website',
-    BACKEND_URL: 'https://packie-designs.onrender.com/api',
+    BACKEND_URL: 'https://vibecodesspace.onrender.com/api',
     COMMISSION_RATE: 0.15,
     BASE_URL: 'https://vibecodes.space'  // Stripe return_url and redirects
 };
@@ -757,18 +757,21 @@ async function initializeStripeElements(plan) {
 
     } catch (error) {
         console.error('Error initializing payment:', error);
-        showPaymentError(plan, 'one-time');
+        showPaymentError(plan, 'one-time', error);
     }
 }
 
 // Show error when Stripe/live payment cannot be loaded (no demo form)
-function showPaymentError(plan, type) {
+function showPaymentError(plan, type, err) {
+    if (err) console.error('Payment error:', err.message || err);
     const paymentElement = document.getElementById('payment-element');
     const isSubscription = type === 'subscription';
+    const subject = encodeURIComponent(isSubscription ? 'Subscribe: ' + plan.name : 'Pay: ' + plan.name);
     paymentElement.innerHTML = `
         <div class="payment-error-box">
             <h4>Payment system temporarily unavailable</h4>
-            <p>We couldn't connect to secure checkout. Please try again in a moment or contact us to complete your order.</p>
+            <p>We couldn't connect to secure checkout. This can happen if the payment server is starting up (try again in 30 seconds) or there's a connection issue.</p>
+            <p class="payment-error-contact">You can <a href="mailto:matty@vibecodes.space?subject=${subject}">email us</a> to complete your order.</p>
             <button type="button" class="btn btn-primary" id="retry-payment-btn">Try again</button>
         </div>
     `;
@@ -849,7 +852,7 @@ async function initializeStripeSubscription(plan) {
 
     } catch (error) {
         console.error('Error initializing subscription:', error);
-        showPaymentError(plan, 'subscription');
+        showPaymentError(plan, 'subscription', error);
     }
 }
 
@@ -982,6 +985,8 @@ style.textContent = `
     }
     .payment-error-box h4 { margin: 0 0 0.5rem 0; color: #991b1b; }
     .payment-error-box p { margin: 0 0 1rem 0; color: #7f1d1d; font-size: 0.875rem; }
+    .payment-error-box .payment-error-contact { margin-top: 0.5rem; }
+    .payment-error-box a { color: #b91c1c; font-weight: 600; text-decoration: underline; }
     .payment-loading {
         padding: 2rem;
         text-align: center;
