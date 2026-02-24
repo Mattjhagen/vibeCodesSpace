@@ -171,7 +171,7 @@
     <!-- Credee Lead Generation Script -->
     <script src="https://common.credee.com/credee-lead-gen-iframe-live.js"></script>
 
-    <!-- Credee Finance Script -->
+    <!-- Credee Finance Script (testfiles = test env; replace with production URL from Credee when going live) -->
     <script src="https://testfiles.credee.com/credee-finance.min.js"></script>
 </head>
 
@@ -199,8 +199,8 @@
                     <a href="#contact" class="nav-link">Contact</a>
                 </li>
             </ul>
-            <button class="credee-button" data-credee-button-code="prod_689iwtwe1z"
-                data-credee-auth_token="7a0dc836528aca3eaee38e69b562f25e">
+            <button class="credee-button" data-credee-button-code="prod_hceg5p5ryz"
+                data-credee-auth_token="92864e9aefca80a2dde3fa3ee086622b">
                 Get Pre-Approved
             </button>
             <div class="hamburger">
@@ -697,7 +697,9 @@
                             <li>No hidden fees</li>
                             <li>Fast funding</li>
                         </ul>
+                        <!-- Credee finance iframe URL requires provider_id; get value from Credee dashboard if missing -->
                         <button class="btn btn-primary credee-finance-btn" data-credee-type="finance"
+                            data-credee-provider-id="REPLACE_WITH_PROVIDER_ID"
                             data-credee-product-code="pc_5eee4049eb56f02bc4412d901d7d240f"
                             data-credee-auth_token="f9f3552255ae780065797fd9005f80df"
                             data-credee-main-url="https://credee.com/request/">
