@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeDomainSearch();
     initializeInlineDomainSearch();
     initializePortfolioImages();
+    initializeCarousel();
+    initializeAiBuilder();
 });
 
 // Open domain modal
@@ -271,6 +273,55 @@ function initializeModals() {
                 modal.style.display = 'none';
             });
         }
+    });
+}
+
+// Carousel (Recent work)
+function initializeCarousel() {
+    const track = document.querySelector('.carousel-track');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    if (!track || !slides.length) return;
+
+    let index = 0;
+    const total = slides.length;
+
+    function goTo(i) {
+        index = (i + total) % total;
+        track.style.transform = 'translateX(-' + index * 100 + '%)';
+        dotsContainer.querySelectorAll('button').forEach((btn, j) => {
+            btn.classList.toggle('active', j === index);
+        });
+    }
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.setAttribute('type', 'button');
+        dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    if (prevBtn) prevBtn.addEventListener('click', () => goTo(index - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goTo(index + 1));
+    goTo(0);
+}
+
+// AI Site Builder: store description and redirect to builder
+function initializeAiBuilder() {
+    const textarea = document.getElementById('aiDescription');
+    const btn = document.getElementById('aiBuildBtn');
+    if (!textarea || !btn) return;
+    btn.addEventListener('click', function () {
+        const description = textarea.value.trim();
+        if (description) {
+            try {
+                sessionStorage.setItem('aiSiteDescription', description);
+            } catch (e) {}
+        }
+        window.location.href = '/builder.html' + (description ? '?ai=1' : '');
     });
 }
 

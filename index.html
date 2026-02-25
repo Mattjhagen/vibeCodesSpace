@@ -208,6 +208,9 @@
                 <li class="nav-item">
                     <a href="#contact" class="nav-link">Contact</a>
                 </li>
+                <li class="nav-item">
+                    <a href="/builder.html" class="nav-link nav-cta">Site Builder</a>
+                </li>
             </ul>
             <button class="credee-button" data-credee-button-code="prod_hceg5p5ryz"
                 data-credee-auth_token="92864e9aefca80a2dde3fa3ee086622b">
@@ -231,21 +234,82 @@
                         <span class="logo-v">V</span>
                         <span class="brace-right">}</span>
                     </div>
-                    <h1 class="logo-text">Vibecodes.space</h1>
+                    <h1 class="logo-text">Create your website</h1>
                 </div>
-                <p class="hero-subtitle">Creating stunning, responsive websites that drive results</p>
+                <p class="hero-subtitle">No code required. Start from a template or describe your site in plain English.</p>
                 <p class="hero-description">
-                    Transform your online presence with custom web design solutions. From concept to launch,
-                    I deliver modern, user-friendly websites that help your business grow.
+                    Build a professional site in minutes with our drag-and-drop builder. Pick a template, customize it, and publish—or let AI draft a site from your description.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#pricing" class="btn btn-primary">View Pricing</a>
-                    <a href="#portfolio" class="btn btn-secondary">See My Work</a>
+                    <a href="/builder.html" class="btn btn-primary">Start building free</a>
+                    <a href="#templates" class="btn btn-secondary">Browse templates</a>
+                    <a href="#ai-builder" class="btn btn-outline btn-hero">Describe with AI</a>
                 </div>
+                <p class="hero-hint"><a href="#portfolio">See recent work</a></p>
             </div>
             <div class="hero-image">
                 <div class="hero-graphic">
                     <i class="fas fa-laptop-code"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">Get online in three simple steps. No technical skills needed.</p>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <span class="step-num">1</span>
+                    <h3>Choose a starting point</h3>
+                    <p>Pick a template or describe your site in words. We’ll give you a ready-to-edit design.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num">2</span>
+                    <h3>Customize in the builder</h3>
+                    <p>Drag, drop, and edit. Change text, images, and colors until it looks exactly how you want.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-num">3</span>
+                    <h3>Publish and go live</h3>
+                    <p>One click to publish. Connect a custom domain or use a free subdomain—you’re live.</p>
+                </div>
+            </div>
+            <div class="steps-cta">
+                <a href="/builder.html" class="btn btn-primary">Get started now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo templates -->
+    <section id="templates" class="templates-section">
+        <div class="container">
+            <h2 class="section-title">Start from a template</h2>
+            <p class="section-subtitle">Professional designs you can customize in minutes.</p>
+            <div class="templates-grid">
+                <div class="template-card">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-basic">
+                            <span>Basic</span>
+                            <small>Simple, clean layout</small>
+                        </div>
+                    </div>
+                    <h3>Basic site</h3>
+                    <p>One-page layout with header, main content, and footer. Perfect for a simple business or personal site.</p>
+                    <a href="/builder.html?template=basic" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-portfolio">
+                            <span>Portfolio</span>
+                            <small>Projects grid</small>
+                        </div>
+                    </div>
+                    <h3>Portfolio</h3>
+                    <p>Showcase your work with a grid of projects. Ideal for creatives and freelancers.</p>
+                    <a href="/builder.html?template=portfolio" class="btn btn-outline btn-sm">Use this template</a>
                 </div>
             </div>
         </div>
@@ -316,11 +380,16 @@
         </div>
     </section>
 
-    <!-- Portfolio Section -->
+    <!-- Portfolio Section - Recent work carousel -->
     <section id="portfolio" class="portfolio">
         <div class="container">
-            <h2 class="section-title">Recent Work</h2>
-            <div class="portfolio-grid">
+            <h2 class="section-title">Recent work</h2>
+            <p class="section-subtitle">Sites built with our tools and custom design.</p>
+            <div class="carousel">
+                <button type="button" class="carousel-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-viewport">
+                    <div class="carousel-track">
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/packieai-screenshot.jpg" alt="PackieAI Screenshot"
@@ -351,6 +420,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/vibecode-screenshot.jpg" alt="VibeCode Screenshot"
@@ -380,6 +451,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/omaha-housing-screenshot.jpg" alt="Omaha Housing Campaign Screenshot"
@@ -410,6 +483,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/hagen-blacksmithing-screenshot.jpg" alt="Hagen Blacksmithing Screenshot"
@@ -439,6 +514,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/p3lending-screenshot.jpg" alt="P3 Lending Screenshot"
@@ -469,6 +546,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/globalnexus-screenshot.jpg" alt="Global Nexus Screenshot"
@@ -498,6 +577,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/nexusmail-screenshot.webp" alt="NexusMail AI Screenshot"
@@ -616,6 +697,23 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                </div>
+                </div>
+                <button type="button" class="carousel-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+                <div class="carousel-dots" role="tablist"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Site Builder -->
+    <section id="ai-builder" class="ai-builder-section">
+        <div class="container">
+            <h2 class="section-title">Build your site with AI</h2>
+            <p class="section-subtitle">Describe your website in plain English. We’ll create a draft you can customize in the builder.</p>
+            <div class="ai-builder-form">
+                <textarea id="aiDescription" rows="4" placeholder="e.g. A landing page for my coffee shop with a hero image, menu section, hours and location, and a contact form."></textarea>
+                <button type="button" id="aiBuildBtn" class="btn btn-primary btn-lg">Build my site</button>
             </div>
         </div>
     </section>

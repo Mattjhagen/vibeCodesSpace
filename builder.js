@@ -109,4 +109,31 @@
     plugins,
     pluginsOpts,
   });
+
+  // Load template from ?template=basic or ?template=portfolio
+  const templateParam = (function () {
+    const m = /[?&]template=([^&]+)/.exec(window.location.search);
+    return m ? m[1].toLowerCase() : null;
+  })();
+  if (templateParam && (templateParam === 'basic' || templateParam === 'portfolio')) {
+    fetch('/templates/' + templateParam + '.html')
+      .then(function (r) { return r.text(); })
+      .then(function (html) {
+        const bodyMatch = /<body[^>]*>([\s\S]*)<\/body>/i.exec(html);
+        const bodyHtml = bodyMatch ? bodyMatch[1].trim() : html;
+        try {
+          editor.setComponents(bodyHtml);
+        } catch (e) { console.warn('Template load:', e); }
+      })
+      .catch(function () {});
+  }
+
+  // Show AI description notice if user came from homepage "Build my site"
+  try {
+    const aiDesc = sessionStorage.getItem('aiSiteDescription');
+    if (aiDesc) {
+      sessionStorage.removeItem('aiSiteDescription');
+      siteInfo.textContent = 'Customize your site below. Tip: add blocks and edit to match: "' + aiDesc.slice(0, 50) + (aiDesc.length > 50 ? '…' : '') + '"';
+    }
+  } catch (e) {}
 })();
