@@ -90,7 +90,24 @@ document.addEventListener('DOMContentLoaded', function () {
     initializePortfolioImages();
     initializeCarousel();
     initializeAiBuilder();
+    initScrollAnimations();
 });
+
+function initScrollAnimations() {
+    var els = document.querySelectorAll('.animate-on-scroll');
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                var delay = entry.target.getAttribute('data-delay');
+                if (delay != null) {
+                    entry.target.style.animationDelay = (parseInt(delay, 10) * 0.12) + 's';
+                }
+            }
+        });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+    els.forEach(function (el) { return observer.observe(el); });
+}
 
 // Open domain modal
 function openDomainModal() {
