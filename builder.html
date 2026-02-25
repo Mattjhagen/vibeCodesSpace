@@ -3,26 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Site Builder</title>
+  <title>Site Builder — Vibecodes</title>
   <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+  <link rel="stylesheet" href="/styles.css">
   <style>
+    /* Builder chrome uses Vibecodes design tokens from styles.css */
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, sans-serif; }
-    .toolbar {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-      padding: 8px 12px; background: #1a1a2e; color: #eee;
+    body { margin: 0; font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); }
+    .builder-chrome {
+      display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
     }
-    .toolbar input, .toolbar button { padding: 6px 10px; border-radius: 4px; border: 1px solid #444; }
-    .toolbar input { background: #16213e; color: #eee; min-width: 140px; }
-    .toolbar button { background: #0f3460; color: #eee; cursor: pointer; }
-    .toolbar button:hover { background: #1a4a7a; }
-    .toolbar .status { margin-left: auto; font-size: 12px; color: #888; }
-    .toolbar a { color: #7eb8da; }
-    #gjs { height: calc(100vh - 48px); border: none; }
+    .builder-chrome input, .builder-chrome button {
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: var(--text-sm);
+      font-family: inherit;
+    }
+    .builder-chrome input {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      min-width: 140px;
+    }
+    .builder-chrome input::placeholder { color: var(--text-muted); }
+    .builder-chrome input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+    .builder-chrome button {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      cursor: pointer;
+      font-weight: var(--font-medium);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .builder-chrome button:hover {
+      background: var(--border);
+      border-color: var(--text-muted);
+    }
+    .builder-chrome .brand-mini {
+      font-weight: var(--font-bold);
+      letter-spacing: 0.02em;
+      color: var(--text-secondary);
+      margin-right: var(--space-2);
+    }
+    .builder-chrome .brand-mini { color: inherit; text-decoration: none; }
+    .builder-chrome .brand-mini:hover { color: var(--accent); }
+    .builder-chrome .status { margin-left: auto; font-size: var(--text-xs); color: var(--text-muted); }
+    .builder-chrome a:not(.brand-mini) { color: var(--accent); text-decoration: none; }
+    .builder-chrome a:hover { text-decoration: underline; }
+    #gjs { height: calc(100vh - 52px); border: none; }
   </style>
 </head>
 <body>
-  <div class="toolbar">
+  <div class="builder-chrome">
+    <a href="/" class="brand-mini">Vibecodes</a>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="password" placeholder="Password">
     <button id="register">Register</button>

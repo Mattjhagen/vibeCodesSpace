@@ -1,15 +1,79 @@
-/* Reset and Base Styles – Dark theme (Squarespace-inspired) */
+/* ============================================
+   VIBECODES BRAND & DESIGN SYSTEM
+   Consistent theme across landing and builder.
+   ============================================ */
 :root {
-    --bg-primary: #0c0c0e;
-    --bg-elevated: #141416;
-    --bg-card: #18181b;
-    --border: #27272a;
+    /* Brand identity */
+    --brand-name: 'Vibecodes';
+    --brand-tagline: 'Create your website';
+
+    /* Surfaces (dark theme) */
+    --bg-primary: #0a0a0c;
+    --bg-elevated: #121214;
+    --bg-card: #161618;
+    --bg-hover: #1c1c1f;
+
+    /* Borders & dividers */
+    --border: #252528;
+    --border-strong: #2e2e32;
+
+    /* Text hierarchy */
     --text-primary: #fafafa;
     --text-secondary: #a1a1aa;
     --text-muted: #71717a;
+    --text-inverse: #0a0a0c;
+
+    /* Brand accent (signature purple) */
     --accent: #a78bfa;
-    --accent-soft: rgba(167, 139, 250, 0.15);
+    --accent-hover: #c4b5fd;
+    --accent-soft: rgba(167, 139, 250, 0.12);
+    --accent-strong: rgba(167, 139, 250, 0.25);
+
+    /* CTAs – primary = white on dark (Squarespace-style) */
+    --cta-bg: #ffffff;
+    --cta-text: #0a0a0c;
+    --cta-hover-bg: #f4f4f5;
+
+    /* Motion & easing */
     --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* Type scale */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --text-xs: 0.8125rem;
+    --text-sm: 0.9375rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: clamp(1.75rem, 4vw, 2.5rem);
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --tracking-tight: -0.02em;
+    --tracking-brand: 0.02em;
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -23,11 +87,13 @@ html {
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
     line-height: 1.6;
     color: var(--text-primary);
     overflow-x: hidden;
     background-color: var(--bg-primary);
+    -webkit-font-smoothing: antialiased;
 }
 
 .container {
@@ -53,12 +119,12 @@ body {
     position: fixed;
     top: 0;
     width: 100%;
-    background: rgba(12, 12, 14, 0.85);
+    background: rgba(10, 10, 12, 0.88);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
     z-index: 1000;
-    padding: 0.875rem 0;
+    padding: var(--space-3) 0;
     transition: background var(--transition), border-color var(--transition);
 }
 
@@ -71,11 +137,35 @@ body {
     align-items: center;
 }
 
-.nav-logo h2 {
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.nav-logo a {
+    text-decoration: none;
     color: var(--text-primary);
-    font-weight: 600;
-    font-size: 1.25rem;
-    letter-spacing: -0.02em;
+    font-weight: var(--font-bold);
+    font-size: var(--text-lg);
+    letter-spacing: var(--tracking-tight);
+    transition: color var(--transition);
+}
+
+.nav-logo a:hover {
+    color: var(--accent);
+}
+
+.nav-logo .brand-wordmark {
+    letter-spacing: 0.04em;
+}
+
+.nav-logo h2 {
+    margin: 0;
+    color: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
 }
 
 .nav-menu {
@@ -100,20 +190,20 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.5rem 1.25rem;
-    background: #fff;
-    color: #0c0c0e;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    border-radius: 6px;
+    padding: var(--space-2) var(--space-5);
+    background: var(--cta-bg);
+    color: var(--cta-text);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    border-radius: var(--radius-sm);
     text-decoration: none;
     transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .nav-cta-btn:hover {
-    background: #f4f4f5;
+    background: var(--cta-hover-bg);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    box-shadow: var(--shadow-sm);
 }
 
 .hamburger {
@@ -348,8 +438,8 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 14px 28px;
-    border-radius: 8px;
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-md);
     text-decoration: none;
     font-weight: 600;
     transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
@@ -360,15 +450,16 @@ body {
 }
 
 .btn-primary {
-    background: #fff;
-    color: #0c0c0e;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    background: var(--cta-bg);
+    color: var(--cta-text);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-md);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    background: #f4f4f5;
+    box-shadow: var(--shadow-md);
+    background: var(--cta-hover-bg);
 }
 
 .btn-secondary {
@@ -774,9 +865,9 @@ section {
 
 .templates-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 1.5rem;
-    max-width: 700px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -817,6 +908,10 @@ section {
 
 .template-basic { background: linear-gradient(135deg, #1c1c1e 0%, #252528 100%); }
 .template-portfolio { background: linear-gradient(135deg, #1e1b24 0%, #2a2530 100%); }
+.template-landing { background: linear-gradient(135deg, #1a1d29 0%, #252830 100%); }
+.template-business { background: linear-gradient(135deg, #1c2520 0%, #243028 100%); }
+.template-blog { background: linear-gradient(135deg, #1e2228 0%, #282c34 100%); }
+.template-restaurant { background: linear-gradient(135deg, #2a2520 0%, #352e28 100%); }
 
 .template-card h3 {
     padding: 1rem 1.25rem 0;
@@ -962,6 +1057,120 @@ section {
 .btn-lg {
     padding: 0.875rem 1.75rem;
     font-size: 1.05rem;
+}
+
+/* Onboarding walk-through */
+.onboarding-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.onboarding-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.onboarding-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+}
+
+.onboarding-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-skip {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    transition: color var(--transition);
+}
+
+.onboarding-skip:hover {
+    color: var(--text-primary);
+}
+
+.onboarding-step {
+    display: none;
+    padding-right: 2rem;
+}
+
+.onboarding-step.active {
+    display: block;
+}
+
+.onboarding-step h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.onboarding-step p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.onboarding-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 1.5rem 0 1rem;
+}
+
+.onboarding-dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: var(--border);
+    cursor: pointer;
+    padding: 0;
+    transition: background var(--transition), transform var(--transition);
+}
+
+.onboarding-dots button.active {
+    background: var(--accent);
+    transform: scale(1.2);
+}
+
+.onboarding-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.onboarding-actions .onboarding-next,
+.onboarding-actions .onboarding-start {
+    margin-left: auto;
 }
 
 /* Portfolio section wrapper – dark */

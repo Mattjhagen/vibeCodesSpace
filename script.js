@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeCarousel();
     initializeAiBuilder();
     initScrollAnimations();
+    initOnboarding();
 });
 
 function initScrollAnimations() {
@@ -107,6 +108,69 @@ function initScrollAnimations() {
         });
     }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
     els.forEach(function (el) { return observer.observe(el); });
+}
+
+function initOnboarding() {
+    var overlay = document.getElementById('onboardingOverlay');
+    var steps = overlay ? overlay.querySelectorAll('.onboarding-step') : [];
+    var dotsContainer = overlay ? overlay.querySelector('.onboarding-dots') : null;
+    var backBtn = overlay ? overlay.querySelector('.onboarding-back') : null;
+    var nextBtn = overlay ? overlay.querySelector('.onboarding-next') : null;
+    var startBtn = overlay ? overlay.querySelector('.onboarding-start') : null;
+    var skipBtn = overlay ? overlay.querySelector('.onboarding-skip') : null;
+
+    if (!overlay || steps.length === 0) return;
+
+    try {
+        if (localStorage.getItem('onboarding_done') === '1') {
+            return;
+        }
+    } catch (e) {}
+
+    var total = steps.length;
+    var current = 0;
+
+    function showStep(i) {
+        current = i;
+        steps.forEach(function (el, idx) {
+            el.classList.toggle('active', idx === i);
+        });
+        if (dotsContainer) {
+            dotsContainer.querySelectorAll('button').forEach(function (btn, idx) {
+                btn.classList.toggle('active', idx === i);
+            });
+        }
+        if (backBtn) backBtn.style.display = i === 0 ? 'none' : 'inline-flex';
+        if (nextBtn) nextBtn.style.display = i === total - 1 ? 'none' : 'inline-flex';
+        if (startBtn) startBtn.style.display = i === total - 1 ? 'inline-flex' : 'none';
+    }
+
+    steps.forEach(function (_, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', 'Step ' + (i + 1));
+        dot.addEventListener('click', function () { showStep(i); });
+        if (dotsContainer) dotsContainer.appendChild(dot);
+    });
+
+    function closeOnboarding() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        try {
+            localStorage.setItem('onboarding_done', '1');
+        } catch (e) {}
+    }
+
+    if (backBtn) backBtn.addEventListener('click', function () { showStep(Math.max(0, current - 1)); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { showStep(Math.min(total - 1, current + 1)); });
+    if (startBtn) startBtn.addEventListener('click', closeOnboarding);
+    if (skipBtn) skipBtn.addEventListener('click', closeOnboarding);
+
+    overlay.querySelector('.onboarding-backdrop').addEventListener('click', closeOnboarding);
+
+    showStep(0);
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 // Open domain modal

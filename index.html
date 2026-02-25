@@ -48,8 +48,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="apple-touch-icon" href="favicon.svg">
     
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#667eea">
+    <!-- Theme Color (Vibecodes brand – dark) -->
+    <meta name="theme-color" content="#0a0a0c">
 
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -186,12 +186,42 @@
 </head>
 
 <body>
+    <!-- Onboarding walk-through (first-time visitors) -->
+    <div id="onboardingOverlay" class="onboarding-overlay" role="dialog" aria-label="Welcome walk-through" aria-modal="true">
+        <div class="onboarding-backdrop"></div>
+        <div class="onboarding-card">
+            <button type="button" class="onboarding-skip" aria-label="Skip">Skip</button>
+            <div class="onboarding-step" data-step="1">
+                <h2>Welcome to Vibecodes</h2>
+                <p>Create a professional website in minutes—no code required. Pick a template, customize it, and publish.</p>
+            </div>
+            <div class="onboarding-step" data-step="2">
+                <h2>Choose your starting point</h2>
+                <p>Start from a ready-made template (landing page, business, blog, portfolio, or restaurant) or describe your site with AI and we’ll draft it for you.</p>
+            </div>
+            <div class="onboarding-step" data-step="3">
+                <h2>Customize in the builder</h2>
+                <p>Use the drag-and-drop editor to change text, images, and layout. Everything is editable—make it yours.</p>
+            </div>
+            <div class="onboarding-step" data-step="4">
+                <h2>Publish and go live</h2>
+                <p>When you’re ready, save and publish. You can deploy to Netlify or Vercel and connect a custom domain.</p>
+            </div>
+            <div class="onboarding-dots" role="tablist"></div>
+            <div class="onboarding-actions">
+                <button type="button" class="btn btn-outline onboarding-back" style="display:none;">Back</button>
+                <button type="button" class="btn btn-primary onboarding-next">Next</button>
+                <a href="/builder.html" class="btn btn-primary onboarding-start" style="display:none;">Get started</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <h2>Packie CSS Custom Web Design & Development</h2>
-            </div>
+            <a href="#home" class="nav-logo">
+                <span class="brand-wordmark" aria-label="Vibecodes home">Vibecodes</span>
+            </a>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="#home" class="nav-link">Home</a>
@@ -306,6 +336,50 @@
                     <h3>Portfolio</h3>
                     <p>Showcase your work with a grid of projects. Ideal for creatives and freelancers.</p>
                     <a href="/builder.html?template=portfolio" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="2">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-landing">
+                            <span>Landing</span>
+                            <small>Hero + features</small>
+                        </div>
+                    </div>
+                    <h3>Landing page</h3>
+                    <p>Marketing one-pager with headline, CTA, and feature blocks. Great for products and offers.</p>
+                    <a href="/builder.html?template=landing" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="3">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-business">
+                            <span>Business</span>
+                            <small>Services + contact</small>
+                        </div>
+                    </div>
+                    <h3>Business</h3>
+                    <p>Services list and contact section. Perfect for consultants and professional services.</p>
+                    <a href="/builder.html?template=business" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="4">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-blog">
+                            <span>Blog</span>
+                            <small>Post list</small>
+                        </div>
+                    </div>
+                    <h3>Blog</h3>
+                    <p>Simple blog layout with post titles, dates, and excerpts. Add your articles and publish.</p>
+                    <a href="/builder.html?template=blog" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="5">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-restaurant">
+                            <span>Restaurant</span>
+                            <small>Menu + hours</small>
+                        </div>
+                    </div>
+                    <h3>Restaurant / Cafe</h3>
+                    <p>Menu sections, hours, and contact. Ideal for food and beverage businesses.</p>
+                    <a href="/builder.html?template=restaurant" class="btn btn-outline btn-sm">Use this template</a>
                 </div>
             </div>
         </div>

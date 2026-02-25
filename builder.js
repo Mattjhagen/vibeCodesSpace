@@ -110,12 +110,13 @@
     pluginsOpts,
   });
 
-  // Load template from ?template=basic or ?template=portfolio
+  // Load template from ?template=basic|portfolio|landing|business|blog|restaurant
+  const allowedTemplates = ['basic', 'portfolio', 'landing', 'business', 'blog', 'restaurant'];
   const templateParam = (function () {
     const m = /[?&]template=([^&]+)/.exec(window.location.search);
     return m ? m[1].toLowerCase() : null;
   })();
-  if (templateParam && (templateParam === 'basic' || templateParam === 'portfolio')) {
+  if (templateParam && allowedTemplates.indexOf(templateParam) !== -1) {
     fetch('/templates/' + templateParam + '.html')
       .then(function (r) { return r.text(); })
       .then(function (html) {
