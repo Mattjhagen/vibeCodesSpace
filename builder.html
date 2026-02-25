@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Builder</title>
+  <link rel="stylesheet" href="https://unpkg.com/grapesjs/dist/css/grapes.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, sans-serif; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+      padding: 8px 12px; background: #1a1a2e; color: #eee;
+    }
+    .toolbar input, .toolbar button { padding: 6px 10px; border-radius: 4px; border: 1px solid #444; }
+    .toolbar input { background: #16213e; color: #eee; min-width: 140px; }
+    .toolbar button { background: #0f3460; color: #eee; cursor: pointer; }
+    .toolbar button:hover { background: #1a4a7a; }
+    .toolbar .status { margin-left: auto; font-size: 12px; color: #888; }
+    .toolbar a { color: #7eb8da; }
+    #gjs { height: calc(100vh - 48px); border: none; }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button id="register">Register</button>
+    <button id="login">Login</button>
+    <span class="status" id="authStatus">Not logged in</span>
+    <input type="text" id="siteName" placeholder="Site name">
+    <button id="save">Save</button>
+    <button id="publish">Publish</button>
+    <button id="deploy">Deploy to host</button>
+    <span class="status" id="siteInfo"></span>
+  </div>
+  <div id="gjs"></div>
+
+  <script src="https://unpkg.com/grapesjs"></script>
+  <script src="https://unpkg.com/grapesjs-blocks-basic@1.0.2/dist/index.js"></script>
+  <script src="/builder.js"></script>
+</body>
+</html>

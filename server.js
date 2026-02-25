@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -6,6 +7,7 @@ const namecom = require('./namecom-integration');
 const fs = require('fs');
 const path = require('path');
 const fse = require('fs-extra');
+const { spawn } = require('child_process');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -252,6 +254,73 @@ app.post('/api/site/publish', authMiddleware, async (req, res) => {
         // public URL
         const publicUrl = `/published/${userId}/${siteId}/index.html`;
         res.json({ publicUrl });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Deploy site to Netlify or Vercel (one-click from builder)
+function resolveSitePath(userId, siteId) {
+    if (!siteId || !/^[\w\-]+$/.test(String(siteId))) return null;
+    const sitePath = path.join(SITES_DIR, String(userId), String(siteId));
+    const real = path.resolve(sitePath);
+    const sitesReal = path.resolve(SITES_DIR);
+    if (!real.startsWith(sitesReal) || !fs.existsSync(real)) return null;
+    return real;
+}
+
+app.post('/api/site/deploy', authMiddleware, async (req, res) => {
+    try {
+        const { siteId, target } = req.body;
+        const userId = req.user.id;
+        const sitePath = resolveSitePath(userId, siteId);
+        if (!sitePath) return res.status(404).json({ error: 'Site not found' });
+
+        const deployTarget = (target || process.env.DEPLOY_TARGET || '').toLowerCase();
+        const token = process.env.DEPLOY_TOKEN || process.env.NETLIFY_AUTH_TOKEN || process.env.VERCEL_TOKEN;
+        if (!deployTarget || (deployTarget !== 'netlify' && deployTarget !== 'vercel')) {
+            return res.status(400).json({ error: 'Set target to netlify or vercel, or set DEPLOY_TARGET in .env' });
+        }
+        if (!token) return res.status(400).json({ error: 'DEPLOY_TOKEN (or NETLIFY_AUTH_TOKEN / VERCEL_TOKEN) required' });
+
+        const runCli = (cmd, args, env) =>
+            new Promise((resolve, reject) => {
+                const proc = spawn(cmd, args, {
+                    cwd: sitePath,
+                    env: { ...process.env, ...env },
+                    shell: true,
+                });
+                let out = '';
+                let err = '';
+                proc.stdout.on('data', (d) => { out += d.toString(); });
+                proc.stderr.on('data', (d) => { err += d.toString(); });
+                proc.on('close', (code) => (code === 0 ? resolve(out + err) : reject(new Error(err || out || 'Deploy failed'))));
+            });
+
+        let deployedUrl = '';
+
+        if (deployTarget === 'netlify') {
+            const siteIdEnv = process.env.NETLIFY_SITE_ID;
+            const args = ['netlify', 'deploy', '--dir=.', '--prod', '--auth', token];
+            if (siteIdEnv) args.push('--site', siteIdEnv);
+            try {
+                const output = await runCli('npx', args, { NETLIFY_AUTH_TOKEN: token });
+                const m = output.match(/https:\/\/[^\s]+\.netlify\.app/);
+                if (m) deployedUrl = m[0];
+            } catch (e) {
+                return res.status(500).json({ error: e.message || 'Netlify deploy failed' });
+            }
+        } else {
+            try {
+                const output = await runCli('npx', ['vercel', 'deploy', '.', '--token', token, '--prod', '--yes'], { VERCEL_TOKEN: token });
+                const m = output.match(/https:\/\/[^\s]+\.vercel\.app/);
+                if (m) deployedUrl = m[0];
+            } catch (e) {
+                return res.status(500).json({ error: e.message || 'Vercel deploy failed' });
+            }
+        }
+
+        res.json({ deployedUrl: deployedUrl || undefined });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
