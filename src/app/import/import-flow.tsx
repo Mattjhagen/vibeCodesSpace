@@ -65,7 +65,13 @@ export function ImportFlow() {
           {source === 'linkedin_url' && (
             <div className="grid gap-2 animate-in fade-in slide-in-from-bottom-2">
               <Label htmlFor="url">Profile URL</Label>
-              <Input id="url" type="url" placeholder="https://linkedin.com/in/username" required />
+              <Input 
+                id="url" 
+                type="text" 
+                defaultValue="https://linkedin.com/in/" 
+                placeholder="username" 
+                required 
+              />
               <p className="text-xs text-muted-foreground">We use a compliant import method that requires you to follow guided steps.</p>
             </div>
           )}

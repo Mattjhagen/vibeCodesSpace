@@ -3,67 +3,68 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
-export async function completeOnboarding(data: { goal: string; source: string; theme: string }) {
+export async function completeOnboarding(data: { goal: string; source: string; theme: string; profileContext?: string }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    redirect('/login')
+    return { error: 'Not authenticated' }
   }
 
   try {
-    // 1. Upsert profile
+    // 1. Create Profile
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert({ 
-        id: user.id, 
-        onboarding_completed: true, 
-        full_name: user.email?.split('@')[0] || 'User' 
+      .upsert({
+        id: user.id,
+        full_name: user.email?.split('@')[0] || 'User',
+        onboarding_completed: true,
+        updated_at: new Date().toISOString()
       })
 
     if (profileError) {
+      console.error('Profile Update Error:', profileError)
       return { error: `Profile update failed: ${profileError.message}` }
     }
 
-    // 2. Create workspace if they don't have one
-    const { data: workspaces, error: workspaceQueryError } = await supabase
+    // 2. Create Workspace
+    const { data: newWorkspace, error: workspaceInsertError } = await supabase
       .from('workspaces')
-      .select('id')
-      .eq('user_id', user.id)
+      .insert({
+        user_id: user.id,
+        name: 'My Workspace'
+      })
+      .select()
+      .single()
 
-    if (workspaceQueryError) {
-      return { error: `Workspace query failed: ${workspaceQueryError.message}` }
+    if (workspaceInsertError) {
+      console.error('Workspace Creation Error:', workspaceInsertError)
+      return { error: `Workspace creation failed: ${workspaceInsertError.message}` }
     }
 
-    if (!workspaces || workspaces.length === 0) {
-      const { data: newWorkspace, error: workspaceInsertError } = await supabase
-        .from('workspaces')
-        .insert({ user_id: user.id, name: 'My Workspace' })
-        .select('id')
-        .single()
-        
-      if (workspaceInsertError) {
-        return { error: `Workspace creation failed: ${workspaceInsertError.message}` }
+    // 3. Create initial site with selected theme and generated content
+    if (newWorkspace) {
+      let initialContent;
+      if (data.profileContext && data.profileContext.length > 10) {
+        const { generateSiteWithAI } = await import('@/lib/openai')
+        initialContent = await generateSiteWithAI(data.goal, data.profileContext)
+      } else {
+        const { generateInitialContent } = await import('@/lib/site-generation')
+        initialContent = generateInitialContent(data.goal, data.theme)
       }
 
-      // 3. Create initial site with selected theme and generated content
-      if (newWorkspace) {
-        const { generateInitialContent } = await import('@/lib/site-generation')
-        const initialContent = generateInitialContent(data.goal, data.theme)
-
-        const { error: siteError } = await supabase
-          .from('sites')
-          .insert({
-            workspace_id: newWorkspace.id,
-            name: `${data.goal} Site`,
-            theme: data.theme,
-            status: 'draft',
-            content: initialContent
-          })
+      const { error: siteError } = await supabase
+        .from('sites')
+        .insert({
+          workspace_id: newWorkspace.id,
+          name: `${data.goal} Site`,
+          theme: data.theme,
+          status: 'draft',
+          content: initialContent
+        })
         
-        if (siteError) {
-          return { error: `Initial site creation failed: ${siteError.message}` }
-        }
+      if (siteError) {
+        return { error: `Initial site creation failed: ${siteError.message}` }
       }
     }
   } catch (err: any) {

@@ -1,16 +1,32 @@
 import { SiteSection } from '@/lib/site-generation'
+import { cn } from '@/lib/utils'
 
-export function HeroSection({ content }: { content: any }) {
+export function HeroSection({ content, theme }: { content: any, theme?: string }) {
+  const isStartup = theme === 'Startup Profile'
+  const isCreative = theme === 'Creative Portfolio'
+
   return (
-    <section className="py-20 px-6 text-center space-y-6">
-      <h1 className="text-5xl font-extrabold tracking-tight sm:text-6xl text-foreground">
+    <section className={cn(
+      "py-24 px-6 text-center space-y-6 transition-colors duration-500",
+      isStartup ? "bg-slate-950 text-white" : isCreative ? "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white" : "bg-background text-foreground"
+    )}>
+      <h1 className={cn(
+        "text-5xl font-extrabold tracking-tight sm:text-7xl",
+        isStartup ? "text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500" : ""
+      )}>
         {content.title}
       </h1>
-      <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+      <p className={cn(
+        "text-xl max-w-2xl mx-auto",
+        isStartup || isCreative ? "text-white/80" : "text-muted-foreground"
+      )}>
         {content.subtitle}
       </p>
       {content.cta && (
-        <button className="mt-8 px-8 py-3 bg-primary text-primary-foreground rounded-full font-semibold shadow-lg hover:shadow-xl transition-all">
+        <button className={cn(
+          "mt-8 px-10 py-4 rounded-full font-bold shadow-2xl transition-all hover:scale-105 active:scale-95",
+          isStartup ? "bg-cyan-500 text-slate-950 hover:bg-cyan-400" : isCreative ? "bg-white text-purple-600 hover:bg-slate-50" : "bg-primary text-primary-foreground"
+        )}>
           {content.cta}
         </button>
       )}
@@ -18,56 +34,90 @@ export function HeroSection({ content }: { content: any }) {
   )
 }
 
-export function AboutSection({ content }: { content: any }) {
-  return (
-    <section className="py-16 px-6 max-w-4xl mx-auto space-y-4">
-      <h2 className="text-3xl font-bold">{content.title}</h2>
-      <p className="text-lg leading-relaxed text-muted-foreground">
-        {content.text}
-      </p>
-    </section>
-  )
-}
+export function AboutSection({ content, theme }: { content: any, theme?: string }) {
+  const isStartup = theme === 'Startup Profile'
+  const isCreative = theme === 'Creative Portfolio'
 
-export function SkillsSection({ content }: { content: any }) {
   return (
-    <section className="py-16 px-6 max-w-4xl mx-auto space-y-8">
-      <h2 className="text-3xl font-bold">{content.title}</h2>
-      <div className="flex flex-wrap gap-3">
-        {content.items?.map((skill: string) => (
-          <span key={skill} className="px-4 py-2 bg-secondary text-secondary-foreground rounded-lg font-medium shadow-sm transition-transform hover:scale-105">
-            {skill}
-          </span>
-        ))}
+    <section className={cn(
+      "py-20 px-6 transition-colors duration-500",
+      isStartup ? "bg-slate-900 text-slate-300" : isCreative ? "bg-slate-50 text-slate-900" : "bg-background text-foreground"
+    )}>
+      <div className="max-w-4xl mx-auto space-y-6 text-center md:text-left">
+        <h2 className={cn(
+          "text-4xl font-bold mb-4",
+          isStartup ? "text-cyan-400" : isCreative ? "text-purple-600" : ""
+        )}>{content.title}</h2>
+        <p className="text-xl leading-relaxed opacity-90">
+          {content.text}
+        </p>
       </div>
     </section>
   )
 }
 
-export function ContactSection({ content }: { content: any }) {
+export function SkillsSection({ content, theme }: { content: any, theme?: string }) {
+  const isStartup = theme === 'Startup Profile'
+  const isCreative = theme === 'Creative Portfolio'
+
   return (
-    <section className="py-20 px-6 text-center bg-muted/20 border-t">
-      <h2 className="text-3xl font-bold mb-4">{content.title}</h2>
-      <p className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+    <section className={cn(
+      "py-20 px-6 transition-colors duration-500",
+      isStartup ? "bg-slate-950 text-white" : isCreative ? "bg-white text-slate-900" : "bg-background text-foreground"
+    )}>
+      <div className="max-w-4xl mx-auto space-y-10">
+        <h2 className="text-4xl font-bold text-center">{content.title}</h2>
+        <div className="flex flex-wrap justify-center gap-4">
+          {content.items?.map((skill: string) => (
+            <span key={skill} className={cn(
+              "px-6 py-3 rounded-2xl font-semibold shadow-sm transition-all hover:-translate-y-1",
+              isStartup ? "bg-slate-800 border border-cyan-500/30 text-cyan-400" : isCreative ? "bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700" : "bg-secondary text-secondary-foreground"
+            )}>
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function ContactSection({ content, theme }: { content: any, theme?: string }) {
+  const isStartup = theme === 'Startup Profile'
+  const isCreative = theme === 'Creative Portfolio'
+
+  return (
+    <section className={cn(
+      "py-24 px-6 text-center border-t transition-colors duration-500",
+      isStartup ? "bg-slate-900 border-slate-800 text-white" : isCreative ? "bg-slate-50 border-purple-100 text-slate-900" : "bg-muted/10"
+    )}>
+      <h2 className="text-4xl font-bold mb-6">{content.title}</h2>
+      <p className="text-xl opacity-80 mb-10 max-w-xl mx-auto">
         {content.description}
       </p>
-      <a href={`mailto:${content.email}`} className="text-xl font-semibold text-primary hover:underline">
+      <a 
+        href={`mailto:${content.email}`} 
+        className={cn(
+          "text-2xl font-bold transition-all hover:opacity-70",
+          isStartup ? "text-cyan-400" : isCreative ? "text-purple-600" : "text-primary"
+        )}
+      >
         {content.email}
       </a>
     </section>
   )
 }
 
-export function RenderSection({ section }: { section: SiteSection }) {
+export function RenderSection({ section, theme }: { section: SiteSection, theme?: string }) {
   switch (section.type) {
     case 'hero':
-      return <HeroSection content={section.content} />
+      return <HeroSection content={section.content} theme={theme} />
     case 'about':
-      return <AboutSection content={section.content} />
+      return <AboutSection content={section.content} theme={theme} />
     case 'skills':
-      return <SkillsSection content={section.content} />
+      return <SkillsSection content={section.content} theme={theme} />
     case 'contact':
-      return <ContactSection content={section.content} />
+      return <ContactSection content={section.content} theme={theme} />
     default:
       return null
   }
