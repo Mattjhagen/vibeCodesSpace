@@ -14,14 +14,28 @@ export function OnboardingWizard() {
   const [theme, setTheme] = useState('')
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleNext = () => setStep(s => s + 1)
-  const handlePrev = () => setStep(s => s - 1)
+  const handleNext = () => {
+    setError(null)
+    setStep(s => s + 1)
+  }
+  const handlePrev = () => {
+    setError(null)
+    setStep(s => s - 1)
+  }
 
   const handleComplete = async () => {
     setIsSubmitting(true)
-    const { completeOnboarding } = await import('./actions')
-    await completeOnboarding({ goal, source, theme })
+    setError(null)
+    try {
+      const { completeOnboarding } = await import('./actions')
+      await completeOnboarding({ goal, source, theme })
+    } catch (err: any) {
+      console.error('Onboarding Client Error:', err)
+      setError(err.message || 'An unexpected error occurred during setup.')
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -98,6 +112,12 @@ export function OnboardingWizard() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg animate-in fade-in slide-in-from-top-2 duration-200">
+            <p className="text-sm font-medium text-destructive">{error}</p>
           </div>
         )}
       </CardContent>
