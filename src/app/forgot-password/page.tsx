@@ -1,10 +1,11 @@
-import { login, signup } from './actions'
+import { resetPassword } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Link from 'next/link'
 
-export default async function LoginPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+export default async function ForgotPasswordPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const searchParams = await props.searchParams
   const message = typeof searchParams?.message === 'string' ? searchParams.message : undefined;
 
@@ -12,9 +13,9 @@ export default async function LoginPage(props: { searchParams: Promise<{ [key: s
     <div className="flex h-screen w-full items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login to Workspace</CardTitle>
+          <CardTitle className="text-2xl">Reset Password</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account.
+            Enter your email and we will send you a secure link to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -29,33 +30,24 @@ export default async function LoginPage(props: { searchParams: Promise<{ [key: s
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <a href="/forgot-password" className="text-sm text-muted-foreground hover:underline">
-                  Forgot password?
-                </a>
-              </div>
-              <Input id="password" name="password" type="password" required />
-            </div>
+            
             {message && (
               <p className="text-sm font-medium text-destructive">{message}</p>
             )}
+
             <Button
-              formAction={login}
+              formAction={resetPassword}
               type="submit"
               className="w-full font-semibold"
             >
-              Login
+              Send Reset Link
             </Button>
-            <Button
-              formAction={signup}
-              type="submit"
-              variant="outline"
-              className="w-full font-semibold"
-            >
-              Sign up
-            </Button>
+            
+            <div className="text-center mt-2">
+              <Link href="/login" className="text-sm text-muted-foreground hover:underline">
+                Back to Login
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server'
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get('code')
+  const next = requestUrl.searchParams.get('next') ?? '/dashboard'
 
   if (code) {
     const supabase = await createClient()
@@ -11,5 +12,5 @@ export async function GET(request: Request) {
   }
 
   // URL to redirect to after sign in process completes
-  return NextResponse.redirect(new URL('/dashboard', request.url))
+  return NextResponse.redirect(new URL(next, request.url))
 }
