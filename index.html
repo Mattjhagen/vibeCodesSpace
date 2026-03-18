@@ -4,7 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GH6ZEZPDM4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-GH6ZEZPDM4');
+    </script>
+
     <!-- Primary Meta Tags -->
     <title>Professional Web Design Services | Packie CSS Custom Web Design & Development | Vibecodes.space</title>
     <meta name="title" content="Professional Web Design Services | Packie CSS Custom Web Design & Development">
@@ -38,8 +48,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
     <link rel="apple-touch-icon" href="favicon.svg">
     
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#667eea">
+    <!-- Theme Color (Vibecodes brand – dark) -->
+    <meta name="theme-color" content="#0a0a0c">
 
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -171,17 +181,47 @@
     <!-- Credee Lead Generation Script -->
     <script src="https://common.credee.com/credee-lead-gen-iframe-live.js"></script>
 
-    <!-- Credee Finance Script -->
+    <!-- Credee Finance Script (testfiles = test env; replace with production URL from Credee when going live) -->
     <script src="https://testfiles.credee.com/credee-finance.min.js"></script>
 </head>
 
 <body>
+    <!-- Onboarding walk-through (first-time visitors) -->
+    <div id="onboardingOverlay" class="onboarding-overlay" role="dialog" aria-label="Welcome walk-through" aria-modal="true">
+        <div class="onboarding-backdrop"></div>
+        <div class="onboarding-card">
+            <button type="button" class="onboarding-skip" aria-label="Skip">Skip</button>
+            <div class="onboarding-step" data-step="1">
+                <h2>Welcome to Vibecodes</h2>
+                <p>Create a professional website in minutes—no code required. Pick a template, customize it, and publish.</p>
+            </div>
+            <div class="onboarding-step" data-step="2">
+                <h2>Choose your starting point</h2>
+                <p>Start from a ready-made template (landing page, business, blog, portfolio, or restaurant) or describe your site with AI and we’ll draft it for you.</p>
+            </div>
+            <div class="onboarding-step" data-step="3">
+                <h2>Customize in the builder</h2>
+                <p>Use the drag-and-drop editor to change text, images, and layout. Everything is editable—make it yours.</p>
+            </div>
+            <div class="onboarding-step" data-step="4">
+                <h2>Publish and go live</h2>
+                <p>When you’re ready, save and publish. You can deploy to Netlify or Vercel and connect a custom domain.</p>
+            </div>
+            <div class="onboarding-dots" role="tablist"></div>
+            <div class="onboarding-actions">
+                <button type="button" class="btn btn-outline onboarding-back" style="display:none;">Back</button>
+                <button type="button" class="btn btn-primary onboarding-next">Next</button>
+                <a href="/builder.html" class="btn btn-primary onboarding-start" style="display:none;">Get started</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo">
-                <h2>Packie CSS Custom Web Design & Development</h2>
-            </div>
+            <a href="#home" class="nav-logo">
+                <span class="brand-wordmark" aria-label="Vibecodes home">Vibecodes</span>
+            </a>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="#home" class="nav-link">Home</a>
@@ -198,11 +238,10 @@
                 <li class="nav-item">
                     <a href="#contact" class="nav-link">Contact</a>
                 </li>
+                <li class="nav-item">
+                    <a href="/builder.html" class="nav-link nav-cta-btn">Get started</a>
+                </li>
             </ul>
-            <button class="credee-button" data-credee-button-code="prod_689iwtwe1z"
-                data-credee-auth_token="7a0dc836528aca3eaee38e69b562f25e">
-                Get Pre-Approved
-            </button>
             <div class="hamburger">
                 <span class="bar"></span>
                 <span class="bar"></span>
@@ -221,21 +260,126 @@
                         <span class="logo-v">V</span>
                         <span class="brace-right">}</span>
                     </div>
-                    <h1 class="logo-text">Vibecodes.space</h1>
+                    <h1 class="logo-text">Create your website</h1>
                 </div>
-                <p class="hero-subtitle">Creating stunning, responsive websites that drive results</p>
+                <p class="hero-subtitle">No code required. Start from a template or describe your site in plain English.</p>
                 <p class="hero-description">
-                    Transform your online presence with custom web design solutions. From concept to launch,
-                    I deliver modern, user-friendly websites that help your business grow.
+                    Build a professional site in minutes with our drag-and-drop builder. Pick a template, customize it, and publish—or let AI draft a site from your description.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#pricing" class="btn btn-primary">View Pricing</a>
-                    <a href="#portfolio" class="btn btn-secondary">See My Work</a>
+                    <a href="/builder.html" class="btn btn-primary">Start building free</a>
+                    <a href="#templates" class="btn btn-secondary">Browse templates</a>
+                    <a href="#ai-builder" class="btn btn-outline btn-hero">Describe with AI</a>
                 </div>
+                <p class="hero-hint"><a href="#portfolio">See recent work</a></p>
             </div>
             <div class="hero-image">
                 <div class="hero-graphic">
                     <i class="fas fa-laptop-code"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section id="how-it-works" class="how-it-works animate-on-scroll">
+        <div class="container">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">Get online in three simple steps. No technical skills needed.</p>
+            <div class="steps-grid">
+                <div class="step-card animate-on-scroll" data-delay="0">
+                    <span class="step-num">1</span>
+                    <h3>Choose a starting point</h3>
+                    <p>Pick a template or describe your site in words. We’ll give you a ready-to-edit design.</p>
+                </div>
+                <div class="step-card animate-on-scroll" data-delay="1">
+                    <span class="step-num">2</span>
+                    <h3>Customize in the builder</h3>
+                    <p>Drag, drop, and edit. Change text, images, and colors until it looks exactly how you want.</p>
+                </div>
+                <div class="step-card animate-on-scroll" data-delay="2">
+                    <span class="step-num">3</span>
+                    <h3>Publish and go live</h3>
+                    <p>One click to publish. Connect a custom domain or use a free subdomain—you’re live.</p>
+                </div>
+            </div>
+            <div class="steps-cta">
+                <a href="/builder.html" class="btn btn-primary">Get started now</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo templates -->
+    <section id="templates" class="templates-section animate-on-scroll">
+        <div class="container">
+            <h2 class="section-title">Start from a template</h2>
+            <p class="section-subtitle">Professional designs you can customize in minutes.</p>
+            <div class="templates-grid">
+                <div class="template-card animate-on-scroll" data-delay="0">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-basic">
+                            <span>Basic</span>
+                            <small>Simple, clean layout</small>
+                        </div>
+                    </div>
+                    <h3>Basic site</h3>
+                    <p>One-page layout with header, main content, and footer. Perfect for a simple business or personal site.</p>
+                    <a href="/builder.html?template=basic" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="1">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-portfolio">
+                            <span>Portfolio</span>
+                            <small>Projects grid</small>
+                        </div>
+                    </div>
+                    <h3>Portfolio</h3>
+                    <p>Showcase your work with a grid of projects. Ideal for creatives and freelancers.</p>
+                    <a href="/builder.html?template=portfolio" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="2">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-landing">
+                            <span>Landing</span>
+                            <small>Hero + features</small>
+                        </div>
+                    </div>
+                    <h3>Landing page</h3>
+                    <p>Marketing one-pager with headline, CTA, and feature blocks. Great for products and offers.</p>
+                    <a href="/builder.html?template=landing" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="3">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-business">
+                            <span>Business</span>
+                            <small>Services + contact</small>
+                        </div>
+                    </div>
+                    <h3>Business</h3>
+                    <p>Services list and contact section. Perfect for consultants and professional services.</p>
+                    <a href="/builder.html?template=business" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="4">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-blog">
+                            <span>Blog</span>
+                            <small>Post list</small>
+                        </div>
+                    </div>
+                    <h3>Blog</h3>
+                    <p>Simple blog layout with post titles, dates, and excerpts. Add your articles and publish.</p>
+                    <a href="/builder.html?template=blog" class="btn btn-outline btn-sm">Use this template</a>
+                </div>
+                <div class="template-card animate-on-scroll" data-delay="5">
+                    <div class="template-preview">
+                        <div class="template-preview-inner template-restaurant">
+                            <span>Restaurant</span>
+                            <small>Menu + hours</small>
+                        </div>
+                    </div>
+                    <h3>Restaurant / Cafe</h3>
+                    <p>Menu sections, hours, and contact. Ideal for food and beverage businesses.</p>
+                    <a href="/builder.html?template=restaurant" class="btn btn-outline btn-sm">Use this template</a>
                 </div>
             </div>
         </div>
@@ -306,11 +450,16 @@
         </div>
     </section>
 
-    <!-- Portfolio Section -->
-    <section id="portfolio" class="portfolio">
+    <!-- Portfolio Section - Recent work carousel -->
+    <section id="portfolio" class="portfolio animate-on-scroll">
         <div class="container">
-            <h2 class="section-title">Recent Work</h2>
-            <div class="portfolio-grid">
+            <h2 class="section-title">Recent work</h2>
+            <p class="section-subtitle">Sites built with our tools and custom design.</p>
+            <div class="carousel">
+                <button type="button" class="carousel-prev" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+                <div class="carousel-viewport">
+                    <div class="carousel-track">
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/packieai-screenshot.jpg" alt="PackieAI Screenshot"
@@ -341,6 +490,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/vibecode-screenshot.jpg" alt="VibeCode Screenshot"
@@ -370,6 +521,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/omaha-housing-screenshot.jpg" alt="Omaha Housing Campaign Screenshot"
@@ -400,6 +553,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/hagen-blacksmithing-screenshot.jpg" alt="Hagen Blacksmithing Screenshot"
@@ -429,6 +584,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/p3lending-screenshot.jpg" alt="P3 Lending Screenshot"
@@ -459,6 +616,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/globalnexus-screenshot.jpg" alt="Global Nexus Screenshot"
@@ -488,6 +647,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                <div class="carousel-slide">
                 <div class="portfolio-item">
                     <div class="portfolio-image">
                         <img src="screenshots/nexusmail-screenshot.webp" alt="NexusMail AI Screenshot"
@@ -606,6 +767,23 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                </div>
+                </div>
+                <button type="button" class="carousel-next" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+                <div class="carousel-dots" role="tablist"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Site Builder -->
+    <section id="ai-builder" class="ai-builder-section animate-on-scroll">
+        <div class="container">
+            <h2 class="section-title">Build your site with AI</h2>
+            <p class="section-subtitle">Describe your website in plain English. We’ll create a draft you can customize in the builder.</p>
+            <div class="ai-builder-form">
+                <textarea id="aiDescription" rows="4" placeholder="e.g. A landing page for my coffee shop with a hero image, menu section, hours and location, and a contact form."></textarea>
+                <button type="button" id="aiBuildBtn" class="btn btn-primary btn-lg">Build my site</button>
             </div>
         </div>
     </section>
@@ -697,12 +875,7 @@
                             <li>No hidden fees</li>
                             <li>Fast funding</li>
                         </ul>
-                        <button class="btn btn-primary credee-finance-btn" data-credee-type="finance"
-                            data-credee-product-code="pc_5eee4049eb56f02bc4412d901d7d240f"
-                            data-credee-auth_token="f9f3552255ae780065797fd9005f80df"
-                            data-credee-main-url="https://credee.com/request/">
-                            Get Financed
-                        </button>
+                        <a href="mailto:matty@vibcodes.space?subject=Customized%20financing%20options" class="btn btn-primary credee-finance-btn">Email for customized options</a>
                     </div>
                 </div>
             </div>
@@ -885,7 +1058,7 @@
     </div>
 
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=live"></script>
 </body>
 
 </html>

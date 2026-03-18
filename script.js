@@ -1,13 +1,11 @@
-// Configuration
+// Configuration - live Stripe keys (backend must use matching sk_live_ in env)
 const CONFIG = {
-    // Replace with your actual Stripe publishable key
-    STRIPE_PUBLISHABLE_KEY: 'pk_live_51RgRBRG6ZGE2Rl3oAODxJMejteYv858nAPO5OkhMycDqT1zRIhnYnT47KAt4EaWAev2QKeQbIM6YVfXEpkJxXz7B0080qNWNbM', // Live Stripe publishable key
+    STRIPE_PUBLISHABLE_KEY: 'pk_live_51RgRBRG6ZGE2Rl3oAODxJMejteYv858nAPO5OkhMycDqT1zRIhnYnT47KAt4EaWAev2QKeQbIM6YVfXEpkJxXz7B0080qNWNbM',
     DYNADOT_API_KEY: '8z9R6Z7D8i8JF84LE7P8g7j9J9W706n9R9F6YRa7E7X',
     DYNADOT_API_URL: 'https://storefront457991568429.gdg.website',
-    BACKEND_URL: 'https://packie-designs.onrender.com/api', // Render backend for production
-    COMMISSION_RATE: 0.15, // 15% commission on domain sales
-    // Base URL for return URLs - use production URL for Stripe compatibility
-    BASE_URL: 'https://www.cmameet.site'
+    BACKEND_URL: 'https://vibecodesspace.onrender.com/api',
+    COMMISSION_RATE: 0.15,
+    BASE_URL: 'https://vibecodes.space'  // Stripe return_url and redirects
 };
 
 // Initialize Stripe dynamically
@@ -90,7 +88,90 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeDomainSearch();
     initializeInlineDomainSearch();
     initializePortfolioImages();
+    initializeCarousel();
+    initializeAiBuilder();
+    initScrollAnimations();
+    initOnboarding();
 });
+
+function initScrollAnimations() {
+    var els = document.querySelectorAll('.animate-on-scroll');
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                var delay = entry.target.getAttribute('data-delay');
+                if (delay != null) {
+                    entry.target.style.animationDelay = (parseInt(delay, 10) * 0.12) + 's';
+                }
+            }
+        });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+    els.forEach(function (el) { return observer.observe(el); });
+}
+
+function initOnboarding() {
+    var overlay = document.getElementById('onboardingOverlay');
+    var steps = overlay ? overlay.querySelectorAll('.onboarding-step') : [];
+    var dotsContainer = overlay ? overlay.querySelector('.onboarding-dots') : null;
+    var backBtn = overlay ? overlay.querySelector('.onboarding-back') : null;
+    var nextBtn = overlay ? overlay.querySelector('.onboarding-next') : null;
+    var startBtn = overlay ? overlay.querySelector('.onboarding-start') : null;
+    var skipBtn = overlay ? overlay.querySelector('.onboarding-skip') : null;
+
+    if (!overlay || steps.length === 0) return;
+
+    try {
+        if (localStorage.getItem('onboarding_done') === '1') {
+            return;
+        }
+    } catch (e) {}
+
+    var total = steps.length;
+    var current = 0;
+
+    function showStep(i) {
+        current = i;
+        steps.forEach(function (el, idx) {
+            el.classList.toggle('active', idx === i);
+        });
+        if (dotsContainer) {
+            dotsContainer.querySelectorAll('button').forEach(function (btn, idx) {
+                btn.classList.toggle('active', idx === i);
+            });
+        }
+        if (backBtn) backBtn.style.display = i === 0 ? 'none' : 'inline-flex';
+        if (nextBtn) nextBtn.style.display = i === total - 1 ? 'none' : 'inline-flex';
+        if (startBtn) startBtn.style.display = i === total - 1 ? 'inline-flex' : 'none';
+    }
+
+    steps.forEach(function (_, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', 'Step ' + (i + 1));
+        dot.addEventListener('click', function () { showStep(i); });
+        if (dotsContainer) dotsContainer.appendChild(dot);
+    });
+
+    function closeOnboarding() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        try {
+            localStorage.setItem('onboarding_done', '1');
+        } catch (e) {}
+    }
+
+    if (backBtn) backBtn.addEventListener('click', function () { showStep(Math.max(0, current - 1)); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { showStep(Math.min(total - 1, current + 1)); });
+    if (startBtn) startBtn.addEventListener('click', closeOnboarding);
+    if (skipBtn) skipBtn.addEventListener('click', closeOnboarding);
+
+    overlay.querySelector('.onboarding-backdrop').addEventListener('click', closeOnboarding);
+
+    showStep(0);
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
 
 // Open domain modal
 function openDomainModal() {
@@ -273,6 +354,55 @@ function initializeModals() {
                 modal.style.display = 'none';
             });
         }
+    });
+}
+
+// Carousel (Recent work)
+function initializeCarousel() {
+    const track = document.querySelector('.carousel-track');
+    const slides = document.querySelectorAll('.carousel-slide');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+    const dotsContainer = document.querySelector('.carousel-dots');
+    if (!track || !slides.length) return;
+
+    let index = 0;
+    const total = slides.length;
+
+    function goTo(i) {
+        index = (i + total) % total;
+        track.style.transform = 'translateX(-' + index * 100 + '%)';
+        dotsContainer.querySelectorAll('button').forEach((btn, j) => {
+            btn.classList.toggle('active', j === index);
+        });
+    }
+
+    slides.forEach((_, i) => {
+        const dot = document.createElement('button');
+        dot.setAttribute('type', 'button');
+        dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    if (prevBtn) prevBtn.addEventListener('click', () => goTo(index - 1));
+    if (nextBtn) nextBtn.addEventListener('click', () => goTo(index + 1));
+    goTo(0);
+}
+
+// AI Site Builder: store description and redirect to builder
+function initializeAiBuilder() {
+    const textarea = document.getElementById('aiDescription');
+    const btn = document.getElementById('aiBuildBtn');
+    if (!textarea || !btn) return;
+    btn.addEventListener('click', function () {
+        const description = textarea.value.trim();
+        if (description) {
+            try {
+                sessionStorage.setItem('aiSiteDescription', description);
+            } catch (e) {}
+        }
+        window.location.href = '/builder.html' + (description ? '?ai=1' : '');
     });
 }
 
@@ -759,55 +889,28 @@ async function initializeStripeElements(plan) {
 
     } catch (error) {
         console.error('Error initializing payment:', error);
-        // Fallback to demo mode
-        showDemoPaymentForm(plan);
+        showPaymentError(plan, 'one-time', error);
     }
 }
 
-// Demo payment form fallback
-function showDemoPaymentForm(plan) {
+// Show error when Stripe/live payment cannot be loaded (no demo form)
+function showPaymentError(plan, type, err) {
+    if (err) console.error('Payment error:', err.message || err);
     const paymentElement = document.getElementById('payment-element');
+    const isSubscription = type === 'subscription';
+    const subject = encodeURIComponent(isSubscription ? 'Subscribe: ' + plan.name : 'Pay: ' + plan.name);
     paymentElement.innerHTML = `
-        <div class="demo-payment-form">
-            <div class="payment-info">
-                <h4>Demo Payment Form</h4>
-                <p>This is a demonstration of the payment flow. In production, this would connect to Stripe.</p>
-            </div>
-            <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="expiry">Expiry</label>
-                    <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label for="cvc">CVC</label>
-                    <input type="text" id="cvc" placeholder="123" maxlength="4">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cardholder-name">Cardholder Name</label>
-                <input type="text" id="cardholder-name" placeholder="John Doe">
-            </div>
+        <div class="payment-error-box">
+            <h4>Payment system temporarily unavailable</h4>
+            <p>We couldn't connect to secure checkout. This can happen if the payment server is starting up (try again in 30 seconds) or there's a connection issue.</p>
+            <p class="payment-error-contact">You can <a href="mailto:matty@vibecodes.space?subject=${subject}">email us</a> to complete your order.</p>
+            <button type="button" class="btn btn-primary" id="retry-payment-btn">Try again</button>
         </div>
     `;
-
-    // Handle form submission
-    const form = document.getElementById('payment-form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const submitButton = document.getElementById('submit-payment');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        // Simulate payment processing
-        setTimeout(() => {
-            // Redirect to e-signature form
-            window.location.href = 'esign.html';
-        }, 2000);
+    document.getElementById('retry-payment-btn').addEventListener('click', () => {
+        paymentElement.innerHTML = '<div class="payment-loading">Loading checkout…</div>';
+        if (isSubscription) initializeStripeSubscription(plan);
+        else initializeStripeElements(plan);
     });
 }
 
@@ -864,7 +967,7 @@ async function initializeStripeSubscription(plan) {
             submitButton.disabled = true;
             submitButton.textContent = 'Processing...';
 
-            const { error } = await stripe.confirmPayment({
+            const { error } = await stripe.confirmSetup({
                 elements,
                 confirmParams: {
                     return_url: `${CONFIG.BASE_URL}/esign.html`,
@@ -881,56 +984,8 @@ async function initializeStripeSubscription(plan) {
 
     } catch (error) {
         console.error('Error initializing subscription:', error);
-        // Fallback to demo mode
-        showDemoSubscriptionForm(plan);
+        showPaymentError(plan, 'subscription', error);
     }
-}
-
-// Demo subscription form fallback
-function showDemoSubscriptionForm(plan) {
-    const paymentElement = document.getElementById('payment-element');
-    paymentElement.innerHTML = `
-        <div class="demo-payment-form">
-            <div class="payment-info">
-                <h4>Demo Subscription Form</h4>
-                <p>This is a demonstration of the subscription flow. In production, this would connect to Stripe.</p>
-            </div>
-            <div class="form-group">
-                <label for="card-number">Card Number</label>
-                <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19">
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="expiry">Expiry</label>
-                    <input type="text" id="expiry" placeholder="MM/YY" maxlength="5">
-                </div>
-                <div class="form-group">
-                    <label for="cvc">CVC</label>
-                    <input type="text" id="cvc" placeholder="123" maxlength="4">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="cardholder-name">Cardholder Name</label>
-                <input type="text" id="cardholder-name" placeholder="John Doe">
-            </div>
-        </div>
-    `;
-
-    // Handle form submission
-    const form = document.getElementById('subscription-form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const submitButton = document.getElementById('submit-subscription');
-        submitButton.disabled = true;
-        submitButton.textContent = 'Processing...';
-
-        // Simulate subscription processing
-        setTimeout(() => {
-            // Redirect to e-signature form
-            window.location.href = 'esign.html';
-        }, 2000);
-    });
 }
 
 // Close payment modal
@@ -1051,6 +1106,23 @@ style.textContent = `
     
     .demo-payment-form {
         padding: 1rem 0;
+    }
+    
+    .payment-error-box {
+        padding: 1.5rem;
+        text-align: center;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+    }
+    .payment-error-box h4 { margin: 0 0 0.5rem 0; color: #991b1b; }
+    .payment-error-box p { margin: 0 0 1rem 0; color: #7f1d1d; font-size: 0.875rem; }
+    .payment-error-box .payment-error-contact { margin-top: 0.5rem; }
+    .payment-error-box a { color: #b91c1c; font-weight: 600; text-decoration: underline; }
+    .payment-loading {
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
     }
     
     .payment-info {
