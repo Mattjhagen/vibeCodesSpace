@@ -27,23 +27,34 @@ export async function completeOnboarding(data: { goal: string; source: string; t
       return { error: `Profile update failed: ${profileError.message}` }
     }
 
-    // 2. Create Workspace
-    const { data: newWorkspace, error: workspaceInsertError } = await supabase
+    // 2. Get or Create Workspace
+    const { data: existingWorkspace } = await supabase
       .from('workspaces')
-      .insert({
-        user_id: user.id,
-        name: 'My Workspace'
-      })
-      .select()
-      .single()
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle()
 
-    if (workspaceInsertError) {
-      console.error('Workspace Creation Error:', workspaceInsertError)
-      return { error: `Workspace creation failed: ${workspaceInsertError.message}` }
+    let workspaceId = existingWorkspace?.id
+
+    if (!workspaceId) {
+      const { data: newWorkspace, error: workspaceInsertError } = await supabase
+        .from('workspaces')
+        .insert({
+          user_id: user.id,
+          name: 'My Workspace'
+        })
+        .select()
+        .single()
+
+      if (workspaceInsertError) {
+        console.error('Workspace Creation Error:', workspaceInsertError)
+        return { error: `Workspace creation failed: ${workspaceInsertError.message}` }
+      }
+      workspaceId = newWorkspace.id
     }
 
     // 3. Create initial site with selected theme and generated content
-    if (newWorkspace) {
+    if (workspaceId) {
       let initialContent;
       if (data.profileContext && data.profileContext.length > 10) {
         const { generateSiteWithAI } = await import('@/lib/openai')
@@ -56,7 +67,7 @@ export async function completeOnboarding(data: { goal: string; source: string; t
       const { error: siteError } = await supabase
         .from('sites')
         .insert({
-          workspace_id: newWorkspace.id,
+          workspace_id: workspaceId,
           name: `${data.goal} Site`,
           theme: data.theme,
           status: 'draft',
@@ -64,11 +75,13 @@ export async function completeOnboarding(data: { goal: string; source: string; t
         })
         
       if (siteError) {
+        console.error('Initial Site Creation Error:', siteError)
         return { error: `Initial site creation failed: ${siteError.message}` }
       }
     }
   } catch (err: any) {
     if (err.digest?.indexOf('NEXT_REDIRECT') === 0) throw err;
+    console.error('Onboarding Logic Error:', err)
     return { error: err.message || 'An unexpected setup error occurred' }
   }
 
