@@ -18,7 +18,8 @@ export default function PricingPage() {
       price: '$12/mo',
       features: ['Up to 3 sites', 'All premium themes', 'Custom domain support', 'Analytics'],
       buttonText: 'Upgrade to Pro',
-      action: '/api/stripe/checkout?plan=pro'
+      action: '/api/stripe/checkout',
+      planId: 'pro'
     },
     {
       name: 'Business',
@@ -26,7 +27,8 @@ export default function PricingPage() {
       price: '$49/mo',
       features: ['Unlimited sites', 'White-labeling', 'Team collaboration', 'Priority support'],
       buttonText: 'Upgrade to Business',
-      action: '/api/stripe/checkout?plan=business'
+      action: '/api/stripe/checkout',
+      planId: 'business'
     }
   ]
   
@@ -61,9 +63,20 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full font-semibold" variant={plan.name === 'Pro' ? 'default' : 'outline'}>
-                {plan.buttonText}
-              </Button>
+              {plan.name === 'Free' ? (
+                <a href={plan.action} className="w-full">
+                  <Button className="w-full font-semibold" variant="outline">
+                    {plan.buttonText}
+                  </Button>
+                </a>
+              ) : (
+                <form action={plan.action} method="POST" className="w-full">
+                  <input type="hidden" name="plan" value={plan.planId} />
+                  <Button type="submit" className="w-full font-semibold" variant={plan.name === 'Pro' ? 'default' : 'outline'}>
+                    {plan.buttonText}
+                  </Button>
+                </form>
+              )}
             </CardFooter>
           </Card>
         ))}
