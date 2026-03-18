@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
+const StripeConstructor = require('stripe')
 import { createClient } from '@/utils/supabase/server'
 
 export async function POST(req: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+  const stripe = new StripeConstructor(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2024-06-20' as any,
   })
 
