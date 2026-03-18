@@ -27,11 +27,13 @@ export default async function DashboardPage() {
   }
 
   // Fetch workspaces and sites
-  const { data: workspace, error: workspaceError } = await supabase
+  const { data: workspaces, error: workspaceError } = await supabase
     .from('workspaces')
     .select('id, name')
     .eq('user_id', user.id)
-    .single()
+    .limit(1)
+
+  const workspace = workspaces?.[0]
 
   let sites: { id: string, name: string, theme: string, status: string }[] = []
   if (workspace?.id) {

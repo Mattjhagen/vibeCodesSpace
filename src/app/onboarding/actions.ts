@@ -28,13 +28,13 @@ export async function completeOnboarding(data: { goal: string; source: string; t
     }
 
     // 2. Get or Create Workspace
-    const { data: existingWorkspace } = await supabase
+    const { data: workspaces } = await supabase
       .from('workspaces')
       .select('id')
       .eq('user_id', user.id)
-      .maybeSingle()
+      .limit(1)
 
-    let workspaceId = existingWorkspace?.id
+    let workspaceId = workspaces?.[0]?.id
 
     if (!workspaceId) {
       const { data: newWorkspace, error: workspaceInsertError } = await supabase
