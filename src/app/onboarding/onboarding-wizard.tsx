@@ -48,6 +48,12 @@ export function OnboardingWizard() {
     }
   }
 
+  const isStep2Disabled = step === 2 && (
+    !source || 
+    (source === 'linkedin' && (!profileContext || profileContext === 'https://linkedin.com/in/')) ||
+    (source === 'resume' && !profileContext)
+  )
+
   return (
     <Card className="w-full max-w-2xl shadow-lg border-muted">
       <CardHeader>
@@ -85,7 +91,12 @@ export function OnboardingWizard() {
               ].map(s => (
                 <div 
                   key={s.id}
-                  onClick={() => setSource(s.id)}
+                  onClick={() => {
+                    setSource(s.id)
+                    if (s.id === 'linkedin' && !profileContext) {
+                      setProfileContext('https://linkedin.com/in/')
+                    }
+                  }}
                   className={`p-4 border rounded-xl cursor-pointer transition-all duration-200 ${source === s.id ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary' : 'hover:border-primary/50 bg-card hover:bg-accent/20'}`}
                 >
                   <div className="font-semibold mb-1">{s.title}</div>
@@ -98,7 +109,7 @@ export function OnboardingWizard() {
               <div className="mt-6 space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
                 <Label>LinkedIn URL</Label>
                 <Input 
-                  defaultValue="https://linkedin.com/in/" 
+                  value={profileContext} 
                   onChange={(e) => setProfileContext(e.target.value)} 
                   placeholder="username" 
                 />
@@ -149,7 +160,7 @@ export function OnboardingWizard() {
       <CardFooter className="flex justify-between border-t bg-muted/20 p-6 rounded-b-xl">
         <Button variant="outline" onClick={handlePrev} disabled={step === 1} className="w-24">Back</Button>
         {step < 3 ? (
-          <Button onClick={handleNext} disabled={(step===1 && !goal) || (step===2 && !source)} className="w-40">
+          <Button onClick={handleNext} disabled={(step===1 && !goal) || isStep2Disabled} className="w-40">
             {step === 2 ? 'Continue to Themes' : 'Next Step'}
           </Button>
         ) : (
