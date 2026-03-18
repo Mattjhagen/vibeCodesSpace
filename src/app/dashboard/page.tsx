@@ -51,7 +51,7 @@ export default async function DashboardPage() {
       <header className="flex h-16 items-center border-b px-6 justify-between bg-card text-card-foreground">
         <h1 className="text-lg font-bold">{workspace?.name || 'VibeCodes Workspace'}</h1>
         <form action={logout}>
-          <Button variant="ghost" size="sm">Sign out</Button>
+          <Button variant="ghost" size="sm" type="submit">Sign out</Button>
         </form>
       </header>
       <main className="flex-1 p-8 space-y-6">
