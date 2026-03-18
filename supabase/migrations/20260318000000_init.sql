@@ -34,6 +34,7 @@ CREATE TABLE sites (
   custom_domain TEXT UNIQUE,
   status site_status NOT NULL DEFAULT 'draft',
   theme TEXT NOT NULL DEFAULT 'minimal',
+  content JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
