@@ -46,15 +46,19 @@ export async function completeOnboarding(data: { goal: string; source: string; t
         return { error: `Workspace creation failed: ${workspaceInsertError.message}` }
       }
 
-      // 3. Create initial site with selected theme
+      // 3. Create initial site with selected theme and generated content
       if (newWorkspace) {
+        const { generateInitialContent } = await import('@/lib/site-generation')
+        const initialContent = generateInitialContent(data.goal, data.theme)
+
         const { error: siteError } = await supabase
           .from('sites')
           .insert({
             workspace_id: newWorkspace.id,
             name: `${data.goal} Site`,
             theme: data.theme,
-            status: 'draft'
+            status: 'draft',
+            content: initialContent
           })
         
         if (siteError) {
