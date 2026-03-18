@@ -1,5 +1,0 @@
-body{font-family:Arial,Helvetica,sans-serif;background:#f6f8fb;color:#222}
-.pane{max-width:900px;margin:32px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.08)}
-input,textarea{width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:4px}
-button{padding:8px 12px;margin:6px 6px 6px 0}
-#siteInfo,#domainResult,#token{margin-top:8px;color:#444}
