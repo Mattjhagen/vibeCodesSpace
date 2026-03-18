@@ -30,11 +30,20 @@ export function OnboardingWizard() {
     setError(null)
     try {
       const { completeOnboarding } = await import('./actions')
-      await completeOnboarding({ goal, source, theme })
+      const result = await completeOnboarding({ goal, source, theme })
+      
+      if (result?.error) {
+        setError(result.error)
+        setIsSubmitting(false)
+      }
     } catch (err: any) {
-      console.error('Onboarding Client Error:', err)
-      setError(err.message || 'An unexpected error occurred during setup.')
-      setIsSubmitting(false)
+      // If it's a redirect, the browser will handle it. 
+      // Otherwise, show the error.
+      if (err.message && !err.message.includes('NEXT_REDIRECT')) {
+        console.error('Onboarding Client Error:', err)
+        setError(err.message || 'An unexpected error occurred during setup.')
+        setIsSubmitting(false)
+      }
     }
   }
 
