@@ -23,15 +23,62 @@ export async function POST(req: Request) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
       
-      // Update the `subscriptions` table and workspace tier
-      if (session.client_reference_id) {
-         await supabase.from('subscriptions').upsert({
-           workspace_id: session.client_reference_id,
-           stripe_customer_id: session.customer as string,
-           stripe_subscription_id: session.subscription as string,
-           status: 'active',
-           plan: 'pro'
-         })
+      // If this checkout was for a custom domain purchase:
+      if (session.metadata?.domain_purchase === 'true') {
+        const domainName = session.metadata.domain_name
+        const expectedPrice = parseInt(session.metadata.base_cost || '2000', 10) / 100 
+        
+        try {
+          const buyRes = await fetch('https://api.vercel.com/v5/domains/buy', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: domainName, expectedPrice })
+          })
+          
+          if (!buyRes.ok) {
+            console.error("Vercel Domain Buy Error:", await buyRes.text());
+          } else {
+            const projectId = process.env.VERCEL_PROJECT_ID || 'vibe-codes-space'
+            const addRes = await fetch(`https://api.vercel.com/v10/projects/${projectId}/domains`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ name: domainName })
+            })
+            
+            if (!addRes.ok) {
+              console.error("Vercel Project Assign Error:", await addRes.text())
+            }
+
+            if (session.client_reference_id) {
+              await supabase.from('sites').insert({
+                workspace_id: session.client_reference_id,
+                title: domainName,
+                domain: domainName,
+                published: true
+              })
+            }
+          }
+        } catch (e) {
+          console.error("Critical Vercel API Integration Failure:", e)
+        }
+
+      } else {
+        // Normal SaaS Subscription
+        if (session.client_reference_id) {
+           await supabase.from('subscriptions').upsert({
+             workspace_id: session.client_reference_id,
+             stripe_customer_id: session.customer as string,
+             stripe_subscription_id: session.subscription as string,
+             status: 'active',
+             plan: 'pro'
+           })
+        }
       }
     }
     
