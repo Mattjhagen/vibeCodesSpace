@@ -40,12 +40,14 @@ export default async function LoginPage(props: { searchParams: Promise<{ [key: s
             )}
             <Button
               formAction={login}
+              type="submit"
               className="w-full font-semibold"
             >
               Login
             </Button>
             <Button
               formAction={signup}
+              type="submit"
               variant="outline"
               className="w-full font-semibold"
             >

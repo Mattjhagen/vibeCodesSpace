@@ -1,0 +1,21 @@
+
+> tempapp@0.1.0 start
+> next start
+
+▲ Next.js 16.2.0
+- Local:         http://localhost:3001
+- Network:       http://192.168.1.124:3001
+✓ Ready in 137ms
+Error: Your project's URL and Key are required to create a Supabase client!
+
+Check your Supabase project's API settings to find these values
+
+https://supabase.com/dashboard/project/_/settings/api
+    at <unknown> (https://supabase.com/dashboard/project/_/settings/api)
+    at <unknown> (.next/server/chunks/[root-of-the-server]__09knqek._.js:72:121)
+    at ii (.next/server/chunks/[root-of-the-server]__09knqek._.js:76:5265)
+    at ia (.next/server/chunks/[root-of-the-server]__09knqek._.js:76:5843)
+    at handler (.next/server/chunks/[root-of-the-server]__09knqek._.js:76:6339)
+    at <unknown> (.next/server/chunks/[root-of-the-server]__09knqek._.js:18:36792)
+    at <unknown> (.next/server/chunks/[root-of-the-server]__09knqek._.js:18:36758)
+    at async tq (.next/server/chunks/[root-of-the-server]__09knqek._.js:18:33322)
