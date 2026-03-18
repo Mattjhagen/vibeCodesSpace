@@ -59,10 +59,10 @@ export default async function DashboardPage() {
         <p className="text-muted-foreground">Welcome back, {profile.full_name || user.email}</p>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
+          <Link href="/onboarding?create=true" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
             <span className="text-2xl mb-2">+</span>
             <span className="font-medium">Create New Site</span>
-          </div>
+          </Link>
           {sites.map(site => (
             <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col p-6 hover:shadow-md transition-shadow cursor-pointer relative group">
               <h3 className="font-semibold text-lg truncate pr-8">{site.name}</h3>

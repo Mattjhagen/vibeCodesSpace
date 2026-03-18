@@ -2,7 +2,9 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { OnboardingWizard } from './onboarding-wizard'
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage(props: { searchParams: Promise<{ create?: string }> }) {
+  const searchParams = await props.searchParams;
+  const isCreating = searchParams.create === 'true'
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,14 +13,14 @@ export default async function OnboardingPage() {
     redirect('/login')
   }
 
-  // Check if already completed onboarding
+  // Check if already completed onboarding (unless intentionally creating a new site)
   const { data: profile } = await supabase
     .from('profiles')
     .select('onboarding_completed')
     .eq('id', user.id)
     .single()
 
-  if (profile?.onboarding_completed) {
+  if (profile?.onboarding_completed && !isCreating) {
     redirect('/dashboard')
   }
 
