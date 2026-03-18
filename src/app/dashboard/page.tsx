@@ -7,25 +7,43 @@ import { logout } from './actions'
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: userData, error: userError } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (userError || !userData?.user) {
     redirect('/login')
   }
 
+  const user = userData.user;
+
   // Check onboarding status
-  const { data: profile } = await supabase.from('profiles').select('onboarding_completed, full_name').eq('id', user.id).single()
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('onboarding_completed, full_name')
+    .eq('id', user.id)
+    .single()
   
-  if (!profile?.onboarding_completed) {
+  if (profileError || !profile?.onboarding_completed) {
     redirect('/onboarding')
   }
 
   // Fetch workspaces and sites
-  const { data: workspace } = await supabase.from('workspaces').select('id, name').eq('user_id', user.id).single()
+  const { data: workspace, error: workspaceError } = await supabase
+    .from('workspaces')
+    .select('id, name')
+    .eq('user_id', user.id)
+    .single()
+
   let sites: { id: string, name: string, theme: string, status: string }[] = []
-  if (workspace) {
-    const { data: sitesData } = await supabase.from('sites').select('*').eq('workspace_id', workspace.id).order('created_at', { ascending: false })
-    sites = sitesData || []
+  if (workspace?.id) {
+    const { data: sitesData, error: sitesError } = await supabase
+      .from('sites')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .order('created_at', { ascending: false })
+    
+    if (!sitesError) {
+      sites = sitesData || []
+    }
   }
 
   return (

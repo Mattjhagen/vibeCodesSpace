@@ -58,9 +58,9 @@ export async function POST(req: Request) {
             if (session.client_reference_id) {
               await supabase.from('sites').insert({
                 workspace_id: session.client_reference_id,
-                title: domainName,
-                domain: domainName,
-                published: true
+                name: domainName,
+                custom_domain: domainName,
+                status: 'published'
               })
             }
           }
