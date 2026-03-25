@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import type Stripe from 'stripe'
-const StripeConstructor = require('stripe')
+import Stripe from 'stripe'
 
 export async function POST(req: Request) {
   try {
@@ -19,8 +18,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Plan is required' }, { status: 400 })
     }
 
-    const stripe = new StripeConstructor(process.env.STRIPE_SECRET_KEY as string, {
-      apiVersion: '2024-06-20' as any,
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      apiVersion: '2024-06-20',
     })
 
     let priceId = ''
@@ -36,17 +35,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Price ID not configured in environment variables' }, { status: 500 })
     }
 
-    // Attempt to automatically wire the Checkout to the user's first workspace to catch the webhook
-    const { data: memberships } = await supabase
-      .from('workspace_users')
-      .select('workspace_id')
+    // Fetch the user's workspace to wire the Checkout for webhook processing
+    const { data: workspaces } = await supabase
+      .from('workspaces')
+      .select('id')
       .eq('user_id', user.id)
       .limit(1)
 
-    let workspaceId = memberships?.[0]?.workspace_id;
+    const workspaceId = workspaces?.[0]?.id;
     if (!workspaceId) {
-       // If no workspace mapped yet, default to user ID map (MVP schema)
-       workspaceId = user.id;
+      return NextResponse.json({ error: 'No workspace found. Please complete onboarding first.' }, { status: 400 })
     }
 
     const session = await stripe.checkout.sessions.create({

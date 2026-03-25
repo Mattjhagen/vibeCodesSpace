@@ -108,12 +108,52 @@ export function ContactSection({ content, theme }: { content: any, theme?: strin
   )
 }
 
+export function ExperienceSection({ content, theme }: { content: any, theme?: string }) {
+  const isStartup = theme === 'Startup Profile'
+  const isCreative = theme === 'Creative Portfolio'
+
+  return (
+    <section className={cn(
+      "py-20 px-6 transition-colors duration-500",
+      isStartup ? "bg-slate-900 text-slate-300" : isCreative ? "bg-white text-slate-900" : "bg-background text-foreground"
+    )}>
+      <div className="max-w-4xl mx-auto space-y-10">
+        <h2 className={cn(
+          "text-4xl font-bold text-center",
+          isStartup ? "text-cyan-400" : isCreative ? "text-purple-600" : ""
+        )}>{content.title}</h2>
+        <div className="space-y-6">
+          {content.jobs?.map((job: { role: string; company: string; years: string; desc: string }, idx: number) => (
+            <div key={idx} className={cn(
+              "p-6 rounded-xl border",
+              isStartup ? "border-slate-700 bg-slate-800/50" : isCreative ? "border-purple-100 bg-purple-50/30" : "border-border bg-card"
+            )}>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2 gap-1">
+                <div>
+                  <span className="font-bold text-lg">{job.role}</span>
+                  <span className={cn("ml-2 font-medium", isStartup ? "text-cyan-400" : isCreative ? "text-purple-600" : "text-primary")}>
+                    @ {job.company}
+                  </span>
+                </div>
+                <span className="text-sm opacity-60">{job.years}</span>
+              </div>
+              <p className="text-sm leading-relaxed opacity-80">{job.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function RenderSection({ section, theme }: { section: SiteSection, theme?: string }) {
   switch (section.type) {
     case 'hero':
       return <HeroSection content={section.content} theme={theme} />
     case 'about':
       return <AboutSection content={section.content} theme={theme} />
+    case 'experience':
+      return <ExperienceSection content={section.content} theme={theme} />
     case 'skills':
       return <SkillsSection content={section.content} theme={theme} />
     case 'contact':
