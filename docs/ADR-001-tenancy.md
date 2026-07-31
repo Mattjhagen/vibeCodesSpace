@@ -64,9 +64,23 @@ toast.success('Site published successfully!')
 ```
 
 There is **no public route that serves a site**. `find src/app -name '*[*'`
-returns only `builder/[siteId]`. There is **no `middleware.ts`**, so no
-subdomain routing exists. `sites.subdomain` and `sites.custom_domain` columns
-exist and **nothing reads them**.
+returns only `builder/[siteId]`. `sites.subdomain` and `sites.custom_domain`
+columns exist and **nothing reads them**.
+
+Middleware **does** exist, at `src/proxy.ts` — Next 16 renamed
+`middleware.ts` to `proxy.ts`, which is why a first pass looking for the old
+name missed it, and why `next build` reports `ƒ Proxy (Middleware)`. It is 19
+lines and does exactly one thing:
+
+```ts
+export async function proxy(request: NextRequest) {
+  return await updateSession(request)   // Supabase session refresh
+}
+```
+
+No host inspection, no subdomain parsing, no rewrite. So the conclusion is
+unchanged — there is no subdomain routing — but Step 5 extends this existing
+file rather than creating one, and must not clobber the session refresh.
 
 A user can build a site, click Publish, be told it succeeded, and there is no
 URL at which it exists. Step 5 is not "improve publishing" — it is building
@@ -239,6 +253,38 @@ Zero code changes, as specified. I did not fix the refund bug, the webhook's
 missing subscription events, the world-readable `portal_admins` policy, or
 the tracked `.env` (§8) — all are named here for a later step rather than
 silently patched during recon.
+
+## 7b. Build and check status (run against a clean install)
+
+`node_modules` in the repo is **partial and tracked**, so checks were run
+against a clean `git archive` + `npm install` in a scratch directory.
+
+| check | result |
+|---|---|
+| `npm install` | 649 packages, clean |
+| `npx tsc --noEmit` | **exit 0** — typecheck clean |
+| `npx next build` | **exit 0** — 17 routes, builds and prerenders fine |
+| `npx eslint .` | **exit 1 — 27 errors, 6 warnings** |
+
+Lint is the only failing gate. Almost all of it is
+`@typescript-eslint/no-explicit-any`, concentrated in exactly the files §1
+identifies as the weak point — `site-generation.ts`, `sections.tsx`,
+`editor-forms.tsx`. The linter is independently flagging the untyped content
+model. Step 2's typed block schemas should clear most of these as a side
+effect rather than needing a separate lint-fixing pass.
+
+Note the build passes *despite* lint failing, because `next.config.ts` is
+empty and Next 16 no longer runs ESLint during `next build`. CI should run
+`eslint` as its own step or this stays invisible.
+
+## 7c. Repo hygiene: node_modules is committed
+
+`.gitignore` contains `/node_modules`, but **1,310 files under it are already
+tracked** — committed before the rule existed, and `.gitignore` does not
+untrack retroactively. The committed tree is also incomplete (83 packages, no
+`next`), so it cannot build on its own and can shadow a real install.
+
+`git rm -r --cached node_modules` is the fix, in its own commit.
 
 ## 8. One housekeeping finding
 
