@@ -4,7 +4,7 @@ Everything here is blocked on access, money, or a decision I shouldn't make for
 you. Ordered by what unblocks the most.
 
 Code status lives in `~/AGENTS.md` (session log) and `docs/ADR-00*.md`.
-Last updated: 2026-08-01, after step 6.
+Last updated: 2026-08-01, after step 7.
 
 ---
 
@@ -12,7 +12,7 @@ Last updated: 2026-08-01, after step 6.
 
 ### 1. Apply the five migrations to Supabase
 
-Nothing built in steps 2–6 exists in the live database. Five migrations are
+Nothing built in steps 2–7 exists in the live database. Five migrations are
 written and unapplied:
 
 ```
@@ -21,19 +21,21 @@ supabase/migrations/20260801000000_site_media_storage.sql
 supabase/migrations/20260801010000_generation_usage.sql
 supabase/migrations/20260801020000_publishing.sql
 supabase/migrations/20260801030000_custom_domains.sql
+supabase/migrations/20260801040000_site_admin.sql
 ```
 
 Apply them in filename order. Until then the editor, publishing, and custom
 domains all reference tables that aren't there.
 
 **Update (2026-08-01):** these have now been executed against a real Postgres
-(PGlite 0.5.4 / PostgreSQL 18.3) and **all five apply cleanly** — 9 tables, all
-with RLS enabled and at least one policy, 18/18 function and RLS checks passing.
+(PGlite 0.5.4 / PostgreSQL 18.3) and **all six apply cleanly** — 14 tables, all
+with RLS enabled and at least one policy, 53 function and RLS checks passing.
 Reproduce with:
 
 ```
 npm run verify:migrations
 npm run verify:rls
+npm run verify:admin-rls
 ```
 
 So you should not hit syntax errors. **Still apply to a staging project first**:
@@ -216,7 +218,12 @@ the build.
 
 ## Not blocking you — my remaining work
 
-- **Step 7** — universal admin backend. Started; recon only so far.
-- **Step 8** — marketing surfaces on relayapp.pro and purepulse.one.
+- **Step 8** — marketing surfaces on relayapp.pro and purepulse.one. The only
+  step left.
+- A `form` block in the content model. `form_submissions` and
+  `/api/forms/[siteId]` work and are tested, but the `contact` block renders a
+  `mailto:` link, so nothing in a published site posts to the inbox yet.
+- Transactional email. Invitations currently return a link to copy, because no
+  email provider is configured. Needed before inviting anyone at scale.
 - Fix the 9 pre-existing lint errors (mostly `no-explicit-any` in
   `site-generation.ts`, which step 2's typed schemas should mostly clear).
