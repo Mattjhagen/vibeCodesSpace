@@ -2,14 +2,27 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { SiteContent, parseSiteContent } from '@/lib/content-model'
 
-export async function updateSiteContent(siteId: string, content: any, theme?: string) {
+export async function updateSiteContent(
+  siteId: string,
+  content: SiteContent,
+  theme?: string,
+) {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  const dataToUpdate: any = { content, updated_at: new Date().toISOString() }
+  // Validate server-side as well as in the editor. The client is not the
+  // security boundary — this action is reachable directly, so everything that
+  // reaches the database is sanitized here regardless of how it was sent.
+  const safe = parseSiteContent(content)
+
+  const dataToUpdate: Record<string, unknown> = {
+    content: safe,
+    updated_at: new Date().toISOString(),
+  }
   if (theme) {
     dataToUpdate.theme = theme
   }

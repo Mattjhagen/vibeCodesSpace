@@ -2,8 +2,17 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { SITE_TYPES, SiteType } from '@/lib/content-model'
+import { loadSiteContent } from '@/lib/migrate-content'
+import { startingContent } from '@/lib/site-types'
 
-export async function completeOnboarding(data: { goal: string; source: string; theme: string; profileContext?: string }) {
+export async function completeOnboarding(data: {
+  goal: string
+  source: string
+  theme: string
+  profileContext?: string
+  siteType?: SiteType
+}) {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -55,13 +64,23 @@ export async function completeOnboarding(data: { goal: string; source: string; t
 
     // 3. Create initial site with selected theme and generated content
     if (workspaceId) {
-      let initialContent;
+      const siteType: SiteType = SITE_TYPES.includes(data.siteType as SiteType)
+        ? (data.siteType as SiteType)
+        : 'portfolio'
+
+      let initialContent
       if (data.profileContext && data.profileContext.length > 10) {
         const { generateSiteWithAI } = await import('@/lib/openai')
-        initialContent = await generateSiteWithAI(data.goal, data.profileContext)
+        // The generator still emits the v1 shape; loadSiteContent migrates and
+        // sanitizes it, so model output never reaches the database unvalidated.
+        // Replacing the generator itself is step 4.
+        const generated = await generateSiteWithAI(data.goal, data.profileContext)
+        initialContent = loadSiteContent(generated, {
+          name: data.goal,
+          theme: data.theme,
+        })
       } else {
-        const { generateInitialContent } = await import('@/lib/site-generation')
-        initialContent = generateInitialContent(data.goal, data.theme)
+        initialContent = startingContent(siteType, data.goal, data.theme)
       }
 
       const { error: siteError } = await supabase
