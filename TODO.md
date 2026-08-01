@@ -4,13 +4,42 @@ Everything here is blocked on access, money, or a decision I shouldn't make for
 you. Ordered by what unblocks the most.
 
 Code status lives in `~/AGENTS.md` (session log) and `docs/ADR-00*.md`.
-Last updated: 2026-08-01, after step 7.
+Last updated: 2026-08-01, after step 8. All eight steps are done.
 
 ---
 
 ## 🔴 Blocking — the product does not work for a customer until these are done
 
-### 1. Apply the five migrations to Supabase
+### 0. vibecodes.space is down — it 301-loops
+
+Your marketing domain does not serve anything. It redirects to itself forever:
+
+```
+$ curl -sI https://vibecodes.space
+HTTP/2 301
+location: https://vibecodes.space/     <-- same URL
+server: cloudflare
+via: 1.1 fly.io                        <-- but the app is on VERCEL
+
+$ curl -sL -o /dev/null -w "%{num_redirects} %{http_code}" https://vibecodes.space
+5 301                                  <-- never resolves
+```
+
+**The app itself is fine.** `https://vibe-codes-space.vercel.app` returns 200
+and serves the builder, login and pricing. Only the custom domain is
+misconfigured — it is pointed through Cloudflare at fly.io instead of Vercel.
+
+**Fix:** point `vibecodes.space` (and `www`) at Vercel, and remove whatever
+fly.io redirect rule is catching it.
+
+This also settles item 2 below: **the app is served from Vercel**, so Vercel's
+DNS targets are the correct ones to hand customers.
+
+**The step 8 marketing sections are written and committed but NOT pushed**, in
+both `~/Relay` and `~/PurePulse`, because their "Start building" button points
+at this domain. Push them once it resolves — see item 15.
+
+### 1. Apply the six migrations to Supabase
 
 Nothing built in steps 2–7 exists in the live database. Five migrations are
 written and unapplied:
@@ -44,6 +73,10 @@ over a session variable rather than GoTrue, and `storage.objects` is a stub with
 the right shape.
 
 ### 2. Decide what customers point their domains at
+
+**Update after step 8:** the app is confirmed served from **Vercel**
+(`vibe-codes-space.vercel.app` → 200), so the Vercel values below are almost
+certainly the right ones. Set them and this item closes.
 
 This one is a real defect, not a config gap. The two DNS instructions we hand
 out go to **different infrastructure**:
@@ -186,6 +219,29 @@ get the `vibecodes.space` apex blocklisted by Google Safe Browsing, which kills
 **every** customer site and your email deliverability at once. Reports are
 stored with no SELECT policy — they're read with the service role, so someone
 has to actually go look.
+
+---
+
+### 15. Push the two marketing sections once the domain resolves
+
+Committed locally, deliberately unpushed:
+
+- `~/Relay` — `34e542b`, adds the vibeCodes section to relayapp.pro
+- `~/PurePulse` — `1a6d6e3`, adds "Rather build it yourself?" to home.html
+
+Both link to `https://vibecodes.space`. Publishing them before item 0 is fixed
+would send traffic from two working sites into a redirect loop.
+
+Preview them locally first: `cd ~/Relay && python3 -m http.server 8899`, or ask
+me to serve both again.
+
+### 16. Your live pricing page over-claims
+
+`vibe-codes-space.vercel.app/pricing` lists **Custom domain support** and
+**Analytics** under Pro, and **Team collaboration** under Business, with no
+qualifier. None of those work yet — they are steps 6 and 7, and unapplied. The
+marketing sections I wrote mark the same items "Soon"; your own pricing page
+does not. Worth reconciling before anyone pays $12/mo for analytics.
 
 ---
 
