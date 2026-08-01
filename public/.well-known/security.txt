@@ -1,0 +1,8 @@
+Contact: mailto:abuse@vibecodes.space
+Contact: https://vibecodes.space/api/abuse
+Preferred-Languages: en
+Canonical: https://vibecodes.space/.well-known/security.txt
+Policy: https://vibecodes.space/abuse
+
+# Sites published on *.vibecodes.space are user-generated. To report phishing,
+# malware or impersonation on a specific subdomain, include the full hostname.
