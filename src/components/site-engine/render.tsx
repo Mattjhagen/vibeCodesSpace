@@ -20,37 +20,89 @@ import {
 } from '@/lib/content-model'
 import { cn } from '@/lib/utils'
 
+/**
+ * Editing affordances, supplied only by the builder.
+ *
+ * When absent the renderer produces exactly the markup a published site
+ * serves — no wrappers, no data attributes, no editable elements. That is the
+ * point of making it optional rather than a separate editing renderer: the
+ * preview and the published page cannot drift.
+ */
+export interface EditHooks {
+  selectedId: string | null
+  onSelect: (blockId: string) => void
+  onTextChange: (blockId: string, text: string) => void
+}
+
+/** Inline-editable text. Commits on blur so typing never re-renders the tree. */
+function Editable({
+  as: Tag,
+  blockId,
+  text,
+  className,
+  edit,
+}: {
+  as: 'h1' | 'h2' | 'h3' | 'p'
+  blockId: string
+  text: string
+  className?: string
+  edit?: EditHooks
+}) {
+  if (!edit) return <Tag className={className}>{text}</Tag>
+  return (
+    <Tag
+      className={cn(className, 'outline-none focus:bg-primary/5 rounded-sm')}
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onBlur={(e) => edit.onTextChange(blockId, e.currentTarget.textContent ?? '')}
+    >
+      {text}
+    </Tag>
+  )
+}
+
 // --------------------------------------------------------------------- block
 
-function BlockView({ block, inHero }: { block: Block; inHero: boolean }) {
+function BlockView({
+  block,
+  inHero,
+  edit,
+}: {
+  block: Block
+  inHero: boolean
+  edit?: EditHooks
+}) {
   switch (block.type) {
-    case 'heading': {
-      const Tag = (`h${block.level}` as 'h1' | 'h2' | 'h3')
+    case 'heading':
       return (
-        <Tag
+        <Editable
+          as={`h${block.level}` as 'h1' | 'h2' | 'h3'}
+          blockId={block.id}
+          text={block.text}
+          edit={edit}
           className={cn(
             'font-bold tracking-tight text-balance',
             block.level === 1 && 'text-4xl sm:text-5xl lg:text-6xl',
             block.level === 2 && 'text-2xl sm:text-3xl',
             block.level === 3 && 'text-xl sm:text-2xl',
           )}
-        >
-          {block.text}
-        </Tag>
+        />
       )
-    }
 
     case 'text':
       return (
-        <p
+        <Editable
+          as="p"
+          blockId={block.id}
+          text={block.text}
+          edit={edit}
           className={cn(
             'leading-relaxed text-pretty',
             inHero ? 'text-lg sm:text-xl max-w-2xl' : 'max-w-prose',
             'text-muted-foreground',
           )}
-        >
-          {block.text}
-        </p>
+        />
       )
 
     case 'image':
@@ -187,7 +239,7 @@ const VARIANT_CLASSES: Record<Section['variant'], string> = {
   plain: 'py-12 items-start',
 }
 
-export function SectionView({ section }: { section: Section }) {
+export function SectionView({ section, edit }: { section: Section; edit?: EditHooks }) {
   const inHero = section.variant === 'hero'
   return (
     <section className={cn('px-6', VARIANT_CLASSES[section.variant])}>
@@ -198,9 +250,26 @@ export function SectionView({ section }: { section: Section }) {
           section.variant === 'split' && 'sm:flex-row sm:gap-12 sm:items-start',
         )}
       >
-        {section.blocks.map((block) => (
-          <BlockView key={block.id} block={block} inHero={inHero} />
-        ))}
+        {section.blocks.map((block) =>
+          edit ? (
+            <div
+              key={block.id}
+              data-block-id={block.id}
+              onClick={(e) => {
+                e.stopPropagation()
+                edit.onSelect(block.id)
+              }}
+              className={cn(
+                'relative w-full cursor-pointer rounded-sm ring-offset-2 transition',
+                edit.selectedId === block.id ? 'ring-2 ring-primary' : 'hover:ring-1 hover:ring-primary/40',
+              )}
+            >
+              <BlockView block={block} inHero={inHero} edit={edit} />
+            </div>
+          ) : (
+            <BlockView key={block.id} block={block} inHero={inHero} />
+          ),
+        )}
       </div>
     </section>
   )

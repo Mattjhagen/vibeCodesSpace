@@ -13,10 +13,13 @@
  * the way in rather than only at render time.
  */
 
+import { useState } from 'react'
 import { Block, parseBlock } from '@/lib/content-model'
+import { uploadSiteImage } from '@/app/builder/[siteId]/upload-action'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { toast } from 'sonner'
 
 function Field({
   label,
@@ -48,11 +51,54 @@ function Field({
   )
 }
 
+/** Upload straight to Supabase storage and write the returned URL into the block. */
+function ImageUpload({
+  siteId,
+  onUploaded,
+}: {
+  siteId: string
+  onUploaded: (url: string) => void
+}) {
+  const [busy, setBusy] = useState(false)
+
+  return (
+    <div className="grid gap-2">
+      <Label>Upload an image</Label>
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+        disabled={busy}
+        className="text-xs file:mr-3 file:rounded-md file:border file:bg-secondary file:px-3 file:py-1.5 file:text-xs"
+        onChange={async (e) => {
+          const file = e.target.files?.[0]
+          if (!file) return
+          setBusy(true)
+          const body = new FormData()
+          body.append('file', file)
+          const result = await uploadSiteImage(siteId, body)
+          setBusy(false)
+          // Let the same file be picked again after a failure.
+          e.target.value = ''
+          if (result.ok) {
+            onUploaded(result.url)
+            toast.success('Image uploaded')
+          } else {
+            toast.error(result.error)
+          }
+        }}
+      />
+      {busy && <p className="text-xs text-muted-foreground">Uploading…</p>}
+    </div>
+  )
+}
+
 export function BlockEditor({
   block,
+  siteId,
   onChange,
 }: {
   block: Block
+  siteId: string
   onChange: (next: Block) => void
 }) {
   /** Re-validate on every edit so stored content is always model-conformant. */
@@ -89,7 +135,8 @@ export function BlockEditor({
     case 'image':
       return (
         <div className="space-y-4">
-          <Field label="Image URL" value={block.src} onChange={(v) => patch({ src: v })} />
+          <ImageUpload siteId={siteId} onUploaded={(url) => patch({ src: url })} />
+          <Field label="…or paste an image URL" value={block.src} onChange={(v) => patch({ src: v })} />
           <Field
             label="Alt text (describe the image)"
             value={block.alt}
