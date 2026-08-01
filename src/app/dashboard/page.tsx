@@ -73,9 +73,14 @@ export default async function DashboardPage() {
                 <span className={`text-xs px-2 py-1 rounded-full ${site.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {site.status}
                 </span>
-                <Link href={`/builder/${site.id}`}>
-                  <Button variant="outline" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">Edit</Button>
-                </Link>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link href={`/dashboard/sites/${site.id}/admin`}>
+                    <Button variant="ghost" size="sm">Admin</Button>
+                  </Link>
+                  <Link href={`/builder/${site.id}`}>
+                    <Button variant="outline" size="sm">Edit</Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

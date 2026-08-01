@@ -60,6 +60,19 @@ async function load(host: string, slug?: string[]) {
   return page ? { site, content, page } : null
 }
 
+/**
+ * Count the view. Fire-and-forget on purpose: a failure to record analytics
+ * must never fail the page a visitor asked for, and the SECURITY DEFINER
+ * function ignores unpublished sites itself.
+ */
+async function recordView(siteId: string, path: string) {
+  try {
+    await anonClient().rpc('record_page_view', { p_site_id: siteId, p_path: path })
+  } catch {
+    /* analytics are not worth an error page */
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { host, slug } = await params
   const loaded = await load(host, slug)
@@ -82,6 +95,8 @@ export default async function CustomDomainPage({ params }: Props) {
   const { host, slug } = await params
   const loaded = await load(host, slug)
   if (!loaded) notFound()
+
+  await recordView(loaded.site.id, '/' + (slug ?? []).join('/'))
 
   return <PageView site={loaded.content} page={loaded.page} />
 }

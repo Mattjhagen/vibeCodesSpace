@@ -73,8 +73,25 @@ export function customDomainFromHost(rawHost: string | null): string | null {
   return host
 }
 
+/**
+ * Paths that stay with the app even on a tenant hostname.
+ *
+ * Only the public form endpoint. A tenant's contact form has to post
+ * somewhere, and posting to its own origin avoids CORS entirely — but the
+ * exemption is a single prefix on purpose. Exempting `/api` wholesale would
+ * expose every app route on every customer domain.
+ */
+function appOwnedOnTenantHost(pathname: string): boolean {
+  return pathname.startsWith('/api/forms/')
+}
+
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host')
+
+  if (appOwnedOnTenantHost(request.nextUrl.pathname)) {
+    return NextResponse.next()
+  }
+
   const tenant = tenantFromHost(host)
 
   if (tenant) {
@@ -135,7 +152,8 @@ function tenantResponse(url: URL) {
 const APP_PATHS = new Set([
   'api', 'auth', 'builder', 'dashboard', 'login', 'logout', 'signup',
   'onboarding', 'import', 'pricing', 'preview', 'forgot-password',
-  'update-password', 'abuse', 's', 'd', 'icon.png', 'robots.txt', 'sitemap.xml',
+  'update-password', 'abuse', 's', 'd', 'invite', 'icon.png', 'robots.txt',
+  'sitemap.xml',
 ])
 
 export const config = {
