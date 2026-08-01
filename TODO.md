@@ -92,6 +92,38 @@ HTTPS.
 
 ---
 
+## 🔴 Not yours — but you should tell whoever owns SchmidtAdmin
+
+### 4b. SchmidtAdmin's admin gate can be bypassed with one line
+
+Found while extracting patterns for step 7. **Recon only — read from the repo,
+not tested against the live deployment.**
+
+`src/middleware.ts` gates the admin on `request.cookies.has('schmidt_admin')`,
+and `src/lib/auth.ts` sets that cookie client-side with
+`document.cookie = 'schmidt_admin=1'`. Not signed, not HttpOnly, not verified.
+Typing that into devtools passes the gate.
+
+On its own that gets you the UI shell, since Supabase RLS still keys on the
+real JWT email. But these policies are also live:
+
+```
+projects, proposals, proposal_versions,
+proposal_line_items, negotiation_events    FOR SELECT USING (true)
+proposals                                  FOR UPDATE USING (true)
+                                               WITH CHECK (true)
+audit_logs                                 FOR INSERT WITH CHECK (true)
+```
+
+So client and pricing data is readable without any session, proposals are
+writable by anyone (a policy cannot restrict columns — the name
+`public_update_status` is not what it enforces), and the audit log accepts
+forged entries. It is a live client system.
+
+Details in `docs/ADR-003-admin-permissions.md`.
+
+---
+
 ## 🟠 Decisions I need from you
 
 ### 5. Pick one registrar
