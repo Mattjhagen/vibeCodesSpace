@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
@@ -35,7 +36,13 @@ export default function DomainPurchasePage() {
     <div className="p-8 max-w-4xl mx-auto min-h-screen">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Custom Domains</h1>
-        <p className="text-muted-foreground">Search for a premium custom domain name and instantly provision it to your workspace.</p>
+        <p className="text-muted-foreground">
+          Search for a custom domain name and instantly provision it to your workspace. Already own one?{' '}
+          <Link href="/dashboard/domains/connect" className="underline underline-offset-4">
+            Connect it instead
+          </Link>
+          .
+        </p>
       </div>
 
       <Card className="shadow-sm">

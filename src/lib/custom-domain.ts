@@ -23,11 +23,33 @@
 
 import { promises as dns } from 'dns'
 
-/** Where a subdomain should CNAME. */
-export const CNAME_TARGET = 'cname.vibecodes.space'
+/**
+ * Where a subdomain should CNAME.
+ *
+ * ⚠️ The default is NOT verified to work. `cname.vibecodes.space` has no
+ * dedicated DNS record — it resolves only because `*.vibecodes.space` is a
+ * Cloudflare wildcard, which a random label resolves through identically:
+ *
+ *   dig +short cname.vibecodes.space           -> 104.21.23.91, 172.67.210.36
+ *   dig +short random-9c8f2z-probe.vibecodes.space -> 104.21.23.91, 172.67.210.36
+ *
+ * So a customer CNAMEing at it reaches Cloudflare with `Host: example.com`,
+ * a hostname that zone does not know, which is a 1014/1016 error unless
+ * Cloudflare for SaaS custom hostnames is configured. Vercel's own documented
+ * target is `cname.vercel-dns.com`, and the apex value below is Vercel's
+ * anycast address — so as it stands the two instructions send apex and
+ * subdomain customers to different infrastructure.
+ *
+ * Overridable so the correct value can be set without a code change once the
+ * hosting path is settled. See the session notes.
+ */
+export const CNAME_TARGET = process.env.CUSTOM_DOMAIN_CNAME_TARGET || 'cname.vibecodes.space'
 
 /** Apex domains cannot CNAME (RFC 1034), so they need A records instead. */
-export const APEX_A_RECORDS = ['76.76.21.21']
+export const APEX_A_RECORDS = (process.env.CUSTOM_DOMAIN_A_RECORDS || '76.76.21.21')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
 
 export const TXT_PREFIX = 'vibecodes-verify='
 

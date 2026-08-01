@@ -52,6 +52,27 @@ export function tenantFromHost(rawHost: string | null): string | null {
   return label
 }
 
+/**
+ * A customer's own domain, or null when this host is ours.
+ *
+ * Whether the domain is actually *connected* is not decided here. Proxy runs
+ * on every request and is documented as edge-deployable code that must not
+ * rely on shared modules — a database lookup per request would be both slow
+ * and wrong-shaped. So any unrecognised host is rewritten optimistically and
+ * the `/d/[host]` route resolves it, where a miss is a 404. An unconnected
+ * host therefore costs one render, not a certificate.
+ */
+export function customDomainFromHost(rawHost: string | null): string | null {
+  const host = (rawHost ?? '').toLowerCase().split(':')[0]
+  if (!host || appHost(host)) return null
+  // Anything under our own domain is a subdomain question, never a custom one.
+  if (host === ROOT_DOMAIN || host.endsWith(`.${ROOT_DOMAIN}`)) return null
+  // Bare IPs pass the hostname regex below; they are never a customer domain.
+  if (/^[0-9.]+$/.test(host)) return null
+  if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(host)) return null
+  return host
+}
+
 export async function proxy(request: NextRequest) {
   const host = request.headers.get('host')
   const tenant = tenantFromHost(host)
@@ -59,14 +80,18 @@ export async function proxy(request: NextRequest) {
   if (tenant) {
     const url = request.nextUrl.clone()
     url.pathname = `/s/${tenant}${request.nextUrl.pathname}`
-    const response = NextResponse.rewrite(url)
-    // Tenant pages are stranger-authored content on their own origin. Deny
-    // framing and leak-free referrers; the CSP that constrains what the page
-    // itself may load is set on the route, where the nonce lives.
-    response.headers.set('X-Frame-Options', 'DENY')
-    response.headers.set('Referrer-Policy', 'no-referrer')
-    response.headers.set('X-Content-Type-Options', 'nosniff')
-    return response
+    return tenantResponse(url)
+  }
+
+  // A domain the customer owns, serving the same tenant content on its own
+  // origin. Same isolation reasoning as subdomains: it is a separate origin,
+  // so it gets a separate cookie jar and the app's session is unreachable
+  // from stranger-authored HTML.
+  const custom = customDomainFromHost(host)
+  if (custom) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/d/${custom}${request.nextUrl.pathname}`
+    return tenantResponse(url)
   }
 
   // Apex path that looks like a tenant name: 301 to the subdomain rather than
@@ -89,11 +114,28 @@ export async function proxy(request: NextRequest) {
   return await updateSession(request)
 }
 
+/**
+ * Rewrite to a tenant route with the headers stranger-authored content needs.
+ *
+ * Shared by the subdomain and custom-domain paths because the content is
+ * identical and only the hostname differs — the isolation guarantees must not
+ * quietly diverge between the two.
+ */
+function tenantResponse(url: URL) {
+  const response = NextResponse.rewrite(url)
+  // Deny framing and leak-free referrers; the CSP that constrains what the
+  // page itself may load is set on the route, where the nonce lives.
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('Referrer-Policy', 'no-referrer')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  return response
+}
+
 /** Top-level paths owned by the app, which must never 301 to a subdomain. */
 const APP_PATHS = new Set([
   'api', 'auth', 'builder', 'dashboard', 'login', 'logout', 'signup',
   'onboarding', 'import', 'pricing', 'preview', 'forgot-password',
-  'update-password', 'abuse', 's', 'icon.png', 'robots.txt', 'sitemap.xml',
+  'update-password', 'abuse', 's', 'd', 'icon.png', 'robots.txt', 'sitemap.xml',
 ])
 
 export const config = {

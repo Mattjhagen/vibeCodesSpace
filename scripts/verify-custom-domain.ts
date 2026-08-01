@@ -7,7 +7,9 @@
  * resolver behaviour, not by mocks that assert what I already believe.
  */
 
+import { promises as dnsPromises } from 'dns'
 import {
+  APEX_A_RECORDS,
   CNAME_TARGET,
   dnsInstructions,
   normalizeCustomDomain,
@@ -15,12 +17,24 @@ import {
   verifyOwnership,
   verifyPointing,
 } from '../src/lib/custom-domain'
+import { customDomainFromHost, tenantFromHost } from '../src/proxy'
 
 const rule = (t: string) => console.log('\n' + '='.repeat(72) + '\n' + t + '\n' + '='.repeat(72))
 let failures = 0
 const check = (label: string, ok: boolean, detail = '') => {
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${label}${detail ? '  — ' + detail : ''}`)
   if (!ok) failures++
+}
+/**
+ * For things that are wrong in the ENVIRONMENT rather than in the code.
+ * Kept out of the exit code deliberately: this script answers "does the
+ * verification logic work", and a DNS record nobody has created yet must not
+ * make that question look unanswered.
+ */
+let warnings = 0
+const warn = (label: string, ok: boolean, detail = '') => {
+  console.log(`  ${ok ? 'ok  ' : 'WARN'}  ${label}${detail ? '  — ' + detail : ''}`)
+  if (!ok) warnings++
 }
 
 async function main() {
@@ -102,12 +116,77 @@ async function main() {
 
   rule('5. THE CNAME TARGET WE HAND OUT')
   console.log(`  subdomains → CNAME ${CNAME_TARGET}`)
-  const targetLive = await verifyPointing('probe-nonexistent.purepulse.one', false)
-  check('target is a name we control (documented, not yet provisioned)', true,
-    `${CNAME_TARGET} must exist before customers are told to point at it`)
-  void targetLive
 
-  rule(failures === 0 ? 'ALL CUSTOM-DOMAIN CHECKS PASSED' : `${failures} CHECK(S) FAILED`)
+  // Whether the target actually resolves yet, asked rather than assumed — and
+  // then whether it resolves for the RIGHT reason, which is a different
+  // question. A wildcard makes every name resolve, so "it resolves" is not
+  // evidence that anyone provisioned it.
+  const resolveOrNull = async (name: string) => {
+    try {
+      return await dnsPromises.resolve(name)
+    } catch {
+      return null
+    }
+  }
+  const target = await resolveOrNull(CNAME_TARGET)
+  const decoy = await resolveOrNull('random-9c8f2z-probe.vibecodes.space')
+  console.log(`  ${CNAME_TARGET} → ${JSON.stringify(target)}`)
+  console.log(`  random-9c8f2z-probe.vibecodes.space → ${JSON.stringify(decoy)}`)
+
+  const wildcarded =
+    target !== null && decoy !== null && JSON.stringify([...target].sort()) === JSON.stringify([...decoy].sort())
+  warn(
+    'CNAME target has a DEDICATED record (not just the wildcard)',
+    !wildcarded,
+    wildcarded
+      ? 'a random label resolves identically — this is *.vibecodes.space, not a provisioned target'
+      : '',
+  )
+  console.log(`  apex customers are sent to  : ${JSON.stringify(APEX_A_RECORDS)}`)
+  console.log(`  subdomain customers reach   : ${JSON.stringify(target)}`)
+  console.log(`
+  These are different destinations. The apex value is Vercel's anycast
+  address; the CNAME target resolves into Cloudflare. At most one of the two
+  is correct, and a CNAME into a Cloudflare zone that has never heard of
+  example.com answers 1014/1016 rather than serving the site. Set
+  CUSTOM_DOMAIN_CNAME_TARGET once the hosting path is settled.`)
+
+  rule('6. HOST ROUTING — WHICH REQUESTS REACH THE CUSTOM-DOMAIN PATH')
+  const routing: [string, 'app' | 'tenant' | 'custom'][] = [
+    ['vibecodes.space', 'app'],
+    ['www.vibecodes.space', 'app'],
+    ['localhost:3000', 'app'],
+    ['vibecodes-space.vercel.app', 'app'],
+    ['alice.vibecodes.space', 'tenant'],
+    ['admin.vibecodes.space', 'app'],          // reserved: not a tenant, not custom
+    ['a.b.vibecodes.space', 'app'],            // wildcard cert covers one level only
+    ['example.com', 'custom'],
+    ['www.example.com', 'custom'],
+    ['shop.example.co.uk', 'custom'],
+    ['192.0.2.10', 'app'],                     // bare IP is never a customer domain
+  ]
+  for (const [host, expected] of routing) {
+    const tenant = tenantFromHost(host)
+    const custom = customDomainFromHost(host)
+    const got = tenant ? 'tenant' : custom ? 'custom' : 'app'
+    check(`${host} → ${got}`, got === expected, got === expected ? '' : `expected ${expected}`)
+  }
+
+  check(
+    'a host is never classified as both tenant and custom',
+    routing.every(([h]) => !(tenantFromHost(h) && customDomainFromHost(h))),
+  )
+  console.log(`
+  Note the two "app" answers that are not obvious. admin.vibecodes.space is a
+  RESERVED label, so it must not fall through to the custom-domain path — that
+  would turn every blocked subdomain into a connectable hostname. And
+  a.b.vibecodes.space is refused because the wildcard certificate covers
+  exactly one level, so a deeper name would be served without a valid cert.`)
+
+  rule(
+    (failures === 0 ? 'ALL CUSTOM-DOMAIN CHECKS PASSED' : `${failures} CHECK(S) FAILED`) +
+      (warnings > 0 ? ` — ${warnings} ENVIRONMENT WARNING(S), see above` : ''),
+  )
   process.exit(failures === 0 ? 0 : 1)
 }
 
