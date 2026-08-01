@@ -26,9 +26,20 @@ supabase/migrations/20260801030000_custom_domains.sql
 Apply them in filename order. Until then the editor, publishing, and custom
 domains all reference tables that aren't there.
 
-**Caveat:** these have never been executed against a real Postgres — there is
-no Postgres, Docker, or Supabase CLI on the r510. Expect to fix syntax on the
-first run. Apply to a staging project first if you have one.
+**Update (2026-08-01):** these have now been executed against a real Postgres
+(PGlite 0.5.4 / PostgreSQL 18.3) and **all five apply cleanly** — 9 tables, all
+with RLS enabled and at least one policy, 18/18 function and RLS checks passing.
+Reproduce with:
+
+```
+npm run verify:migrations
+npm run verify:rls
+```
+
+So you should not hit syntax errors. **Still apply to a staging project first**:
+PGlite is Postgres, not Supabase — `auth.uid()` is a faithful reimplementation
+over a session variable rather than GoTrue, and `storage.objects` is a stub with
+the right shape.
 
 ### 2. Decide what customers point their domains at
 
