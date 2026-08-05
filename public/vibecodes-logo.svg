@@ -1,0 +1,13 @@
+<svg width="280" height="68" viewBox="0 0 280 68" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="glg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B63F5"/>
+      <stop offset="100%" stop-color="#3DD8C8"/>
+    </linearGradient>
+  </defs>
+  <rect width="68" height="68" rx="15" fill="#08080E"/>
+  <path d="M13 19C19 22.5 28.5 46 34 48.5C39.5 46 49 22.5 55 19" stroke="url(#glg)" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <text x="82" y="40" font-family="system-ui,-apple-system,Helvetica Neue,sans-serif" font-size="27" font-weight="600" letter-spacing="-0.5" fill="#F2F0FB">Vibe</text>
+  <text x="146" y="40" font-family="system-ui,-apple-system,Helvetica Neue,sans-serif" font-size="27" font-weight="600" letter-spacing="-0.5" fill="#8B63F5">Codes</text>
+  <text x="83" y="57" font-family="system-ui,-apple-system,Helvetica Neue,sans-serif" font-size="10.5" font-weight="400" letter-spacing="2.2" fill="#3DD8C8">SPACE</text>
+</svg>
