@@ -8,6 +8,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "VibeCodes Space",
   description: "Create a professional personal website in minutes",
+  other: {
+    "impact-site-verification": "2dbaa6a9-15d4-4b37-a2a0-40f7c58b5887",
+  },
 };
 
 export default function RootLayout({
