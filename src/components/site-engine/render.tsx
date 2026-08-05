@@ -164,7 +164,8 @@ function BlockView({
       return (
         <a
           href={href}
-          {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          {...(!edit && external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+          onClick={edit ? (e) => e.preventDefault() : undefined}
           className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2"
         >
           {block.label}

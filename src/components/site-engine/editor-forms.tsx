@@ -379,6 +379,9 @@ function ButtonBlockEditor({
   // sanitizeUrl('mailto:') → '#' because empty recipient is invalid, which would
   // make detectLinkType re-derive 'web' on every render without this local state.
   const [linkType, setLinkType] = useState<LinkType>(() => detectLinkType(block.href))
+  // Raw local value avoids sanitizeUrl mangling mid-type (e.g. "h" → "https://h/" → shows "h/").
+  // We only commit through patch on blur, not on every keystroke.
+  const [rawValue, setRawValue] = useState(() => stripPrefix(block.href, detectLinkType(block.href)))
   const opt = LINK_OPTIONS.find((o) => o.value === linkType) ?? LINK_OPTIONS[0]
 
   return (
@@ -393,6 +396,7 @@ function ButtonBlockEditor({
           onChange={(e) => {
             const t = e.target.value as LinkType
             setLinkType(t)
+            setRawValue('')
             patch({ href: '#' }) // clear value when switching types
           }}
         >
@@ -405,9 +409,10 @@ function ButtonBlockEditor({
       <div className="grid gap-2">
         <Label>{opt.fieldLabel}</Label>
         <Input
-          value={stripPrefix(block.href, linkType)}
+          value={rawValue}
           placeholder={opt.placeholder}
-          onChange={(e) => patch({ href: buildHref(linkType, e.target.value) })}
+          onChange={(e) => setRawValue(e.target.value)}
+          onBlur={(e) => patch({ href: buildHref(linkType, e.target.value) })}
         />
       </div>
     </div>
