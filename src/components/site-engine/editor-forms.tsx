@@ -272,7 +272,10 @@ function ButtonBlockEditor({
   block: Extract<Block, { type: 'button' }>
   patch: (fields: Record<string, unknown>) => void
 }) {
-  const linkType = detectLinkType(block.href)
+  // Local state so the selected type survives the parseBlock/sanitizeUrl round-trip.
+  // sanitizeUrl('mailto:') → '#' because empty recipient is invalid, which would
+  // make detectLinkType re-derive 'web' on every render without this local state.
+  const [linkType, setLinkType] = useState<LinkType>(() => detectLinkType(block.href))
   const opt = LINK_OPTIONS.find((o) => o.value === linkType) ?? LINK_OPTIONS[0]
 
   return (
@@ -286,11 +289,8 @@ function ButtonBlockEditor({
           value={linkType}
           onChange={(e) => {
             const t = e.target.value as LinkType
-            // Preserve empty-but-typed prefix so detectLinkType picks up the new type immediately
-            if (t === 'email') patch({ href: 'mailto:' })
-            else if (t === 'phone') patch({ href: 'tel:' })
-            else if (t === 'sms') patch({ href: 'sms:' })
-            else patch({ href: '#' })
+            setLinkType(t)
+            patch({ href: '#' }) // clear value when switching types
           }}
         >
           {LINK_OPTIONS.map((o) => (
