@@ -96,11 +96,12 @@ export type Block =
   | { id: string; type: 'quote'; text: string; attribution: string }
   | { id: string; type: 'contact'; email: string; phone: string; note: string }
   | { id: string; type: 'divider' }
+  | { id: string; type: 'gallery'; items: { src: string; alt: string; caption: string }[] }
 
 export type BlockType = Block['type']
 
 export const BLOCK_TYPES: BlockType[] = [
-  'heading', 'text', 'image', 'button', 'list',
+  'heading', 'text', 'image', 'gallery', 'button', 'list',
   'cards', 'stats', 'quote', 'contact', 'divider',
 ]
 
@@ -181,6 +182,19 @@ export function parseBlock(input: unknown): Block | null {
     }
     case 'divider':
       return { id, type: 'divider' }
+    case 'gallery': {
+      const items = Array.isArray(raw.items)
+        ? raw.items
+            .map((i) => {
+              const g = (i ?? {}) as Record<string, unknown>
+              const src = sanitizeImageSrc(g.src)
+              return src ? { src, alt: str(g.alt), caption: str(g.caption, 200) } : null
+            })
+            .filter((g): g is { src: string; alt: string; caption: string } => g !== null)
+            .slice(0, 50)
+        : []
+      return { id, type: 'gallery', items }
+    }
     default:
       return null
   }
