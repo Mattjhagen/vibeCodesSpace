@@ -4,12 +4,20 @@ import { checkAvailability } from '@/lib/dynadot'
 
 const DEFAULT_TLDS = ['.com', '.net', '.org', '.io', '.co', '.dev']
 
-function buyUrl(domain: string): string {
-  const code = process.env.DYNADOT_AFFILIATE_CODE
-  const url = new URL('https://www.dynadot.com/domain/search.html')
-  url.searchParams.set('domain', domain)
-  if (code) url.searchParams.set('refer', code)
-  return url.toString()
+/**
+ * Builds a Namecheap affiliate buy URL.
+ *
+ * Namecheap's affiliate program runs on Impact. Set NAMECHEAP_AFFILIATE_ID to
+ * your Impact publisher ID — the full tracking URL becomes:
+ *   https://namecheap.pxf.io/c/{id}/1383/1383?u=https://www.namecheap.com/...
+ *
+ * Leave NAMECHEAP_AFFILIATE_ID unset to link directly (no tracking, no commission).
+ */
+function namecheapBuyUrl(domain: string): string {
+  const dest = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`
+  const affId = process.env.NAMECHEAP_AFFILIATE_ID
+  if (!affId) return dest
+  return `https://namecheap.pxf.io/c/${affId}/1383/1383?u=${encodeURIComponent(dest)}`
 }
 
 export async function GET(req: Request) {
@@ -20,20 +28,21 @@ export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get('q')?.trim().toLowerCase()
   if (!q) return NextResponse.json({ error: 'q is required' }, { status: 400 })
 
-  // Strip protocol/www and trailing slash
   const clean = q.replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/$/, '')
-  // If user typed a full domain with TLD, search just that; otherwise fan out across TLDs.
   const hasTld = /\.[a-z]{2,}$/.test(clean)
   const domains = hasTld
     ? [clean]
     : DEFAULT_TLDS.map((tld) => clean.replace(/\..+$/, '') + tld)
 
+  // Dynadot handles the availability check; Namecheap handles the purchase.
+  // Domain availability data is identical across registrars (it's all WHOIS).
+  // This avoids Namecheap's API IP-whitelisting requirement on serverless infra.
   const settled = await Promise.allSettled(domains.map((d) => checkAvailability(d)))
 
   const results = settled.map((r, i) =>
     r.status === 'fulfilled'
-      ? { ...r.value, buyUrl: buyUrl(domains[i]) }
-      : { domain: domains[i], available: false, priceUsd: null, premium: false, buyUrl: buyUrl(domains[i]), error: true },
+      ? { ...r.value, buyUrl: namecheapBuyUrl(domains[i]) }
+      : { domain: domains[i], available: false, priceUsd: null, premium: false, buyUrl: namecheapBuyUrl(domains[i]), error: true },
   )
 
   return NextResponse.json({ results })
