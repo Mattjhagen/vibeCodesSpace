@@ -37,7 +37,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setSelected(null); setConfirming(false); onClose() } }}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="w-[95vw] max-w-6xl max-h-[92vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="text-lg">Choose a Template</DialogTitle>
           <DialogDescription>
@@ -65,7 +65,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
 
         {/* Template grid */}
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map((template) => {
               const theme = SITE_THEMES.find((t) => t.id === template.themeId)
               const isSelected = selected === template.id
@@ -79,7 +79,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
                   )}
                 >
                   {/* Thumbnail */}
-                  <div className="relative h-40 overflow-hidden bg-muted">
+                  <div className="relative h-48 overflow-hidden bg-muted">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={template.thumbnail}
