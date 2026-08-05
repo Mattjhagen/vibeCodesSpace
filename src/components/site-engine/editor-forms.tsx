@@ -1,25 +1,13 @@
 'use client'
 
-/**
- * Field-level editing for v2 blocks.
- *
- * Deliberately plain inputs driven off the block schema. The real editor —
- * add/remove/reorder, inline editing, image upload, undo/redo — is the next
- * step; this exists so the builder keeps working against the new model rather
- * than regressing to "editing coming soon" while the model lands.
- *
- * Every change goes through `parseBlock`, so the editor cannot write a shape
- * the renderer would choke on, and a pasted `javascript:` URL is sanitized on
- * the way in rather than only at render time.
- */
-
 import { useState } from 'react'
-import { Block, parseBlock } from '@/lib/content-model'
+import { Block, parseBlock, sanitizeImageSrc } from '@/lib/content-model'
 import { uploadSiteImage } from '@/app/builder/[siteId]/upload-action'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 function Field({
   label,
@@ -146,33 +134,7 @@ export function BlockEditor({
       )
 
     case 'button':
-      return (
-        <div className="space-y-4">
-          <Field label="Label" value={block.label} onChange={(v) => patch({ label: v })} />
-          <div className="grid gap-2">
-            <Label>Link</Label>
-            <Input
-              value={block.href === '#' ? '' : block.href}
-              placeholder="https://…  or  mailto:you@email.com  or  tel:+15551234567"
-              onChange={(e) => {
-                let v = e.target.value.trim()
-                if (!v) { patch({ href: '#' }); return }
-                // Auto-prefix common shortcuts
-                if (v.startsWith('@')) v = 'mailto:' + v.slice(1)
-                else if (/^\+?[\d\s()-]{7,}$/.test(v)) v = 'tel:' + v.replace(/\s/g, '')
-                else if (v.includes('@') && !v.startsWith('mailto:')) v = 'mailto:' + v
-                else if (!v.match(/^https?:|mailto:|tel:/)) v = 'https://' + v
-                patch({ href: v })
-              }}
-            />
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Website: <span className="font-mono">https://example.com</span><br />
-              Email: <span className="font-mono">mailto:you@email.com</span><br />
-              Phone: <span className="font-mono">tel:+15551234567</span>
-            </p>
-          </div>
-        </div>
-      )
+      return <ButtonBlockEditor block={block} patch={patch} />
 
     case 'list':
       return (
@@ -260,5 +222,241 @@ export function BlockEditor({
 
     case 'divider':
       return <p className="text-xs text-muted-foreground">A divider has nothing to edit.</p>
+
+    case 'gallery':
+      return <GalleryBlockEditor block={block} siteId={siteId} patch={patch} />
   }
+}
+
+// ----------------------------------------------------------------- button editor
+
+type LinkType = 'web' | 'email' | 'phone' | 'sms'
+
+const LINK_OPTIONS: { value: LinkType; label: string; placeholder: string; fieldLabel: string }[] = [
+  { value: 'web',   label: 'Open a website',    placeholder: 'example.com',     fieldLabel: 'Website address' },
+  { value: 'email', label: 'Send an email',      placeholder: 'you@example.com', fieldLabel: 'Email address' },
+  { value: 'phone', label: 'Make a phone call',  placeholder: '+1 555 123 4567', fieldLabel: 'Phone number' },
+  { value: 'sms',   label: 'Send a text message',placeholder: '+1 555 123 4567', fieldLabel: 'Phone number' },
+]
+
+function detectLinkType(href: string): LinkType {
+  if (href.startsWith('mailto:')) return 'email'
+  if (href.startsWith('tel:'))    return 'phone'
+  if (href.startsWith('sms:'))    return 'sms'
+  return 'web'
+}
+
+function stripPrefix(href: string, type: LinkType): string {
+  if (href === '#' || !href) return ''
+  if (type === 'email') return href.slice(7)
+  if (type === 'phone') return href.slice(4)
+  if (type === 'sms')   return href.slice(4)
+  return href.replace(/^https?:\/\//, '')
+}
+
+function buildHref(type: LinkType, value: string): string {
+  const v = value.trim()
+  if (!v) return '#'
+  switch (type) {
+    case 'email': return `mailto:${v}`
+    case 'phone': return `tel:${v.replace(/\s/g, '')}`
+    case 'sms':   return `sms:${v.replace(/\s/g, '')}`
+    case 'web':   return /^https?:\/\//.test(v) ? v : `https://${v}`
+  }
+}
+
+function ButtonBlockEditor({
+  block,
+  patch,
+}: {
+  block: Extract<Block, { type: 'button' }>
+  patch: (fields: Record<string, unknown>) => void
+}) {
+  const linkType = detectLinkType(block.href)
+  const opt = LINK_OPTIONS.find((o) => o.value === linkType) ?? LINK_OPTIONS[0]
+
+  return (
+    <div className="space-y-4">
+      <Field label="Button label" value={block.label} onChange={(v) => patch({ label: v })} />
+
+      <div className="grid gap-2">
+        <Label>What does this button do?</Label>
+        <select
+          className="w-full rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm"
+          value={linkType}
+          onChange={(e) => {
+            const t = e.target.value as LinkType
+            // Preserve empty-but-typed prefix so detectLinkType picks up the new type immediately
+            if (t === 'email') patch({ href: 'mailto:' })
+            else if (t === 'phone') patch({ href: 'tel:' })
+            else if (t === 'sms') patch({ href: 'sms:' })
+            else patch({ href: '#' })
+          }}
+        >
+          {LINK_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="grid gap-2">
+        <Label>{opt.fieldLabel}</Label>
+        <Input
+          value={stripPrefix(block.href, linkType)}
+          placeholder={opt.placeholder}
+          onChange={(e) => patch({ href: buildHref(linkType, e.target.value) })}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ----------------------------------------------------------------- gallery editor
+
+function GalleryBlockEditor({
+  block,
+  siteId,
+  patch,
+}: {
+  block: Extract<Block, { type: 'gallery' }>
+  siteId: string
+  patch: (fields: Record<string, unknown>) => void
+}) {
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [dropTarget, setDropTarget] = useState<number | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+
+  const items = block.items
+
+  const reorder = (from: number, to: number) => {
+    if (from === to) return
+    const next = [...items]
+    const [moved] = next.splice(from, 1)
+    next.splice(to, 0, moved)
+    patch({ items: next })
+  }
+
+  const removeItem = (idx: number) => {
+    patch({ items: items.filter((_, i) => i !== idx) })
+  }
+
+  const updateItem = (idx: number, changes: Partial<(typeof items)[0]>) => {
+    patch({ items: items.map((item, i) => (i === idx ? { ...item, ...changes } : item)) })
+  }
+
+  async function uploadFiles(files: File[]) {
+    const uploaded: { src: string; alt: string; caption: string }[] = []
+    for (const file of files) {
+      const body = new FormData()
+      body.append('file', file)
+      const result = await uploadSiteImage(siteId, body)
+      if (result.ok) {
+        uploaded.push({ src: result.url, alt: '', caption: '' })
+      } else {
+        toast.error(result.error)
+      }
+    }
+    if (uploaded.length) {
+      patch({ items: [...block.items, ...uploaded] })
+      toast.success(`${uploaded.length} photo${uploaded.length > 1 ? 's' : ''} added`)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Drop zone */}
+      <div
+        className={cn(
+          'flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 text-center transition',
+          isDragOver ? 'border-primary bg-primary/5' : 'border-border',
+        )}
+        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={async (e) => {
+          e.preventDefault()
+          setIsDragOver(false)
+          const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+          if (files.length) await uploadFiles(files)
+        }}
+      >
+        <div className="text-3xl">🖼️</div>
+        <p className="text-sm font-medium">Drop photos here</p>
+        <label className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 transition">
+          Browse photos
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+            multiple
+            className="sr-only"
+            onChange={async (e) => {
+              const files = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith('image/'))
+              if (files.length) await uploadFiles(files)
+              e.target.value = ''
+            }}
+          />
+        </label>
+        <p className="text-[11px] text-muted-foreground">PNG, JPG, WebP, GIF supported</p>
+      </div>
+
+      {/* Image grid with drag-and-drop reorder */}
+      {items.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium">
+            {items.length} photo{items.length > 1 ? 's' : ''} — drag to reorder
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {items.map((item, i) => (
+              <div
+                key={i}
+                draggable
+                onDragStart={() => setDragIdx(i)}
+                onDragEnd={() => { setDragIdx(null); setDropTarget(null) }}
+                onDragOver={(e) => { e.preventDefault(); setDropTarget(i) }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  if (dragIdx !== null) reorder(dragIdx, i)
+                  setDragIdx(null)
+                  setDropTarget(null)
+                }}
+                className={cn(
+                  'relative rounded-lg overflow-hidden border-2 transition cursor-grab active:cursor-grabbing',
+                  dropTarget === i && dragIdx !== i ? 'border-primary scale-[1.02]' : 'border-transparent',
+                  dragIdx === i ? 'opacity-50' : '',
+                )}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={sanitizeImageSrc(item.src)}
+                  alt={item.alt || 'Gallery photo'}
+                  className="w-full h-24 object-cover bg-muted"
+                />
+                <button
+                  className="absolute top-1 right-1 rounded-full bg-black/60 text-white w-5 h-5 flex items-center justify-center text-[10px] hover:bg-red-600 transition"
+                  onClick={() => removeItem(i)}
+                  title="Remove photo"
+                  type="button"
+                >
+                  ✕
+                </button>
+                <div className="p-1.5 space-y-1">
+                  <input
+                    className="w-full text-[10px] border border-border rounded px-1.5 py-0.5 bg-transparent placeholder:text-muted-foreground/50"
+                    placeholder="Description (for accessibility)"
+                    value={item.alt}
+                    onChange={(e) => updateItem(i, { alt: e.target.value })}
+                  />
+                  <input
+                    className="w-full text-[10px] border border-border rounded px-1.5 py-0.5 bg-transparent placeholder:text-muted-foreground/50"
+                    placeholder="Caption (optional)"
+                    value={item.caption}
+                    onChange={(e) => updateItem(i, { caption: e.target.value })}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }

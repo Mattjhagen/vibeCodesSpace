@@ -226,6 +226,30 @@ function BlockView({
 
     case 'divider':
       return <hr className="w-full border-border" />
+
+    case 'gallery':
+      if (!block.items.length) return null
+      return (
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 w-full">
+          {block.items.map((item, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <figure key={i} className="overflow-hidden rounded-lg">
+              <img
+                src={sanitizeImageSrc(item.src)}
+                alt={item.alt}
+                loading="lazy"
+                decoding="async"
+                className="w-full h-48 object-cover"
+              />
+              {item.caption && (
+                <figcaption className="mt-1 text-xs text-muted-foreground text-center px-1">
+                  {item.caption}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      )
   }
 }
 
