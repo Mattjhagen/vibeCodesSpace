@@ -37,7 +37,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) { setSelected(null); setConfirming(false); onClose() } }}>
-      <DialogContent className="w-[95vw] max-w-6xl max-h-[92vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-h-[92vh] flex flex-col p-0 gap-0" style={{ width: '95vw', maxWidth: '1100px' }}>
         <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
           <DialogTitle className="text-lg">Choose a Template</DialogTitle>
           <DialogDescription>
