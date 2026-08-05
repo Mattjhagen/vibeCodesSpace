@@ -1,118 +1,214 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Globe, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export default function DomainPurchasePage() {
+type DomainResult = {
+  domain: string
+  available: boolean
+  priceUsd: number | null
+  premium: boolean
+  buyUrl: string
+  error?: boolean
+}
+
+function TldBadge({ tld }: { tld: string }) {
+  const colors: Record<string, string> = {
+    '.com': 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    '.net': 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
+    '.org': 'bg-green-500/10 text-green-600 dark:text-green-400',
+    '.io':  'bg-orange-500/10 text-orange-600 dark:text-orange-400',
+    '.co':  'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400',
+    '.dev': 'bg-red-500/10 text-red-600 dark:text-red-400',
+  }
+  const cls = colors[tld] ?? 'bg-muted text-muted-foreground'
+  return (
+    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', cls)}>
+      {tld}
+    </span>
+  )
+}
+
+function DomainRow({ result }: { result: DomainResult }) {
+  const dot = result.domain.lastIndexOf('.')
+  const name = result.domain.slice(0, dot)
+  const tld = result.domain.slice(dot)
+
+  return (
+    <div className={cn(
+      'flex items-center justify-between gap-4 rounded-xl border px-5 py-4 transition',
+      result.available
+        ? 'border-border bg-card hover:border-primary/30 hover:bg-accent/30'
+        : 'border-border/50 bg-muted/30 opacity-60',
+    )}>
+      <div className="flex items-center gap-3 min-w-0">
+        <TldBadge tld={tld} />
+        <span className="font-mono text-sm font-medium truncate">
+          {name}<span className="text-muted-foreground">{tld}</span>
+        </span>
+        {result.premium && (
+          <span className="hidden sm:inline-flex items-center rounded-full border border-amber-400/50 bg-amber-400/10 px-2 py-0.5 text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+            PREMIUM
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-4 shrink-0">
+        {result.available ? (
+          <>
+            <span className="text-sm font-semibold tabular-nums">
+              {result.priceUsd != null ? `$${result.priceUsd.toFixed(2)}/yr` : '—'}
+            </span>
+            <a
+              href={result.buyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" className="gap-1.5">
+                Buy at Dynadot
+                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M2 10L10 2M10 2H5M10 2v5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Button>
+            </a>
+          </>
+        ) : (
+          <span className="text-xs text-muted-foreground">Taken</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function DomainSearchPage() {
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
-  const [result, setResult] = useState<{available: boolean, baseCost?: number, finalPrice?: number, domain?: string, error?: string} | null>(null)
+  const [results, setResults] = useState<DomainResult[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const checkDomain = async () => {
-    if (!query) return;
+  async function search() {
+    const q = query.trim()
+    if (!q) return
     setLoading(true)
-    setResult(null)
-    
-    // Strip http:// or www.
-    let cleanDomain = query.trim().toLowerCase()
-    cleanDomain = cleanDomain.replace(/^(https?:\/\/)?(www\.)?/, '')
-    
+    setResults(null)
+    setError(null)
     try {
-      const res = await fetch(`/api/domains/check?domain=${cleanDomain}`)
+      const res = await fetch(`/api/domains/search?q=${encodeURIComponent(q)}`)
       const data = await res.json()
-      setResult(data)
-    } catch (err) {
-      setResult({ available: false, error: 'Failed to verify domain status over network' })
+      if (data.error) { setError(data.error); return }
+      setResults(data.results)
+    } catch {
+      setError('Could not reach the domain search service. Try again.')
     } finally {
       setLoading(false)
     }
   }
 
+  const available = results?.filter((r) => r.available) ?? []
+  const taken = results?.filter((r) => !r.available) ?? []
+
   return (
-    <div className="p-8 max-w-4xl mx-auto min-h-screen">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Custom Domains</h1>
-        <p className="text-muted-foreground">
-          Search for a custom domain name and instantly provision it to your workspace. Already own one?{' '}
-          <Link href="/dashboard/domains/connect" className="underline underline-offset-4">
-            Connect it instead
+    <div className="mx-auto max-w-3xl px-4 py-10 space-y-8">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight">Get a custom domain</h1>
+        <p className="text-sm text-muted-foreground">
+          Search for a domain, buy it at Dynadot, then come back and connect it to your site.
+          Already own one?{' '}
+          <Link href="/dashboard/domains/connect" className="text-primary hover:underline underline-offset-4">
+            Connect it →
           </Link>
-          .
         </p>
       </div>
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" /> 
-            Domain Search
-          </CardTitle>
-          <CardDescription>Find the perfect .com, .space, or .dev for your site.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Input 
-              placeholder="e.g. mykillerportfolio.com" 
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && checkDomain()}
-              className="text-lg py-6"
-            />
-            <Button disabled={loading} onClick={checkDomain} size="lg" className="px-8 shrink-0">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Search'}
-            </Button>
-          </div>
+      {/* Search bar */}
+      <div className="flex gap-2">
+        <Input
+          ref={inputRef}
+          placeholder="mybusiness.com or just &quot;mybusiness&quot;"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && search()}
+          className="h-11 font-mono"
+          autoFocus
+        />
+        <Button
+          onClick={search}
+          disabled={loading || !query.trim()}
+          className="h-11 px-6 shrink-0"
+        >
+          {loading ? (
+            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+          ) : 'Search'}
+        </Button>
+      </div>
 
-          {result && (
-            <div className="mt-8 animate-in fade-in slide-in-from-bottom-4">
-              {result.error ? (
-                 <div className="p-6 bg-destructive/10 border-destructive/20 border rounded-xl flex items-center gap-3">
-                   <XCircle className="h-6 w-6 text-destructive" />
-                   <div>
-                     <h3 className="font-semibold text-destructive">Search Error</h3>
-                     <p className="text-sm text-destructive/80">{result.error}</p>
-                     <p className="text-xs text-muted-foreground mt-2">(Note: Ensure VERCEL_TOKEN is configured in production environment variables to query the backend registrar)</p>
-                   </div>
-                 </div>
-              ) : result.available ? (
-                <div className="p-6 bg-green-500/10 border-green-500/20 border rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle2 className="h-6 w-6 text-green-600" />
-                    <div>
-                      <h3 className="text-xl font-bold text-green-700">{result.domain} is available!</h3>
-                      <p className="text-sm text-green-700/80">Lock it in right now before someone else buys it.</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-6">
-                     <span className="text-2xl font-black">${result.finalPrice} <span className="text-sm font-normal text-muted-foreground">/yr</span></span>
-                     <form action="/api/stripe/domain-checkout" method="POST">
-                       <input type="hidden" name="domain" value={result.domain} />
-                       <input type="hidden" name="finalPrice" value={result.finalPrice} />
-                       <input type="hidden" name="baseCost" value={result.baseCost} />
-                       <Button type="submit" size="lg" className="bg-green-600 hover:bg-green-700 text-white shadow-md transition-transform hover:-translate-y-0.5">
-                         Buy Now
-                       </Button>
-                     </form>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-6 bg-muted border rounded-xl flex items-center gap-3 opacity-75 grayscale sepia">
-                  <XCircle className="h-6 w-6" />
-                  <div>
-                    <h3 className="font-semibold">{result.domain} is not available</h3>
-                    <p className="text-sm text-muted-foreground">This domain has already been registered heavily elsewhere.</p>
-                  </div>
-                </div>
-              )}
+      {/* Error */}
+      {error && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {/* Results */}
+      {results && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          {available.length > 0 && (
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                Available
+              </p>
+              <div className="space-y-2">
+                {available.map((r) => <DomainRow key={r.domain} result={r} />)}
+              </div>
+            </section>
+          )}
+
+          {taken.length > 0 && (
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                Not available
+              </p>
+              <div className="space-y-2">
+                {taken.map((r) => <DomainRow key={r.domain} result={r} />)}
+              </div>
+            </section>
+          )}
+
+          {/* Post-purchase callout */}
+          {available.length > 0 && (
+            <div className="rounded-xl border border-dashed border-border bg-muted/30 px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">Already bought your domain?</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Connect it to your site from the dashboard — takes about 5 minutes.
+                </p>
+              </div>
+              <Link href="/dashboard/domains/connect">
+                <Button variant="outline" size="sm" className="shrink-0">
+                  Connect a domain →
+                </Button>
+              </Link>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!results && !loading && !error && (
+        <div className="rounded-xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center space-y-2">
+          <p className="text-sm font-medium text-foreground">Search for your domain above</p>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Type a name or a full domain like <span className="font-mono">mybusiness.com</span>. We'll check .com, .net, .org, .io, .co, and .dev.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

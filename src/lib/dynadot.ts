@@ -18,9 +18,12 @@ const PRODUCTION = 'https://api.dynadot.com/api3.json'
 const SANDBOX = 'https://api-sandbox.dynadot.com/api3.json'
 
 export function dynadotEndpoint(): string {
-  // Opt IN to production. A missing or misspelled env value lands on the
-  // sandbox, where a mistake costs nothing.
-  return process.env.DYNADOT_ENV === 'production' ? PRODUCTION : SANDBOX
+  // Opt IN to production. Having DYNADOT_PRODUCTION_KEY set (vs DYNADOT_API_KEY)
+  // also implies production — a key named "production" is unlikely to be for sandbox.
+  const useProduction =
+    process.env.DYNADOT_ENV === 'production' ||
+    (!!process.env.DYNADOT_PRODUCTION_KEY && !process.env.DYNADOT_API_KEY)
+  return useProduction ? PRODUCTION : SANDBOX
 }
 
 export class DynadotError extends Error {
@@ -41,7 +44,9 @@ type DynadotResponse = {
 }
 
 async function call(params: Record<string, string>): Promise<DynadotResponse['Response']> {
-  const key = process.env.DYNADOT_API_KEY
+  // Accept either name — DYNADOT_PRODUCTION_KEY is used in the Vercel/local env,
+  // DYNADOT_API_KEY is the legacy name retained for backward compatibility.
+  const key = process.env.DYNADOT_PRODUCTION_KEY || process.env.DYNADOT_API_KEY
   if (!key) throw new DynadotError('not_configured', 'Domain registration is not configured.')
 
   const url = new URL(dynadotEndpoint())
