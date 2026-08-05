@@ -156,7 +156,7 @@ export function BuilderShell({
           <Button variant="outline" size="sm" onClick={onSave} disabled={isSaving} className="w-24">
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
-          <BuilderEditor siteId={site.id} initialStatus={site.status} />
+          <BuilderEditor siteId={site.id} initialStatus={site.status} initialSubdomain={site.subdomain ?? undefined} />
         </div>
       </header>
 
