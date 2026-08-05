@@ -149,7 +149,28 @@ export function BlockEditor({
       return (
         <div className="space-y-4">
           <Field label="Label" value={block.label} onChange={(v) => patch({ label: v })} />
-          <Field label="Link" value={block.href} onChange={(v) => patch({ href: v })} />
+          <div className="grid gap-2">
+            <Label>Link</Label>
+            <Input
+              value={block.href === '#' ? '' : block.href}
+              placeholder="https://…  or  mailto:you@email.com  or  tel:+15551234567"
+              onChange={(e) => {
+                let v = e.target.value.trim()
+                if (!v) { patch({ href: '#' }); return }
+                // Auto-prefix common shortcuts
+                if (v.startsWith('@')) v = 'mailto:' + v.slice(1)
+                else if (/^\+?[\d\s()-]{7,}$/.test(v)) v = 'tel:' + v.replace(/\s/g, '')
+                else if (v.includes('@') && !v.startsWith('mailto:')) v = 'mailto:' + v
+                else if (!v.match(/^https?:|mailto:|tel:/)) v = 'https://' + v
+                patch({ href: v })
+              }}
+            />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Website: <span className="font-mono">https://example.com</span><br />
+              Email: <span className="font-mono">mailto:you@email.com</span><br />
+              Phone: <span className="font-mono">tel:+15551234567</span>
+            </p>
+          </div>
         </div>
       )
 
