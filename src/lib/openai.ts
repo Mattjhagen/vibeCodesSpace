@@ -5,13 +5,38 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+async function fetchLinkedInProfile(url: string): Promise<string> {
+  try {
+    const readerUrl = `https://r.jina.ai/${url}`
+    const res = await fetch(readerUrl, {
+      headers: {
+        'Accept': 'text/plain',
+        'X-Return-Format': 'text',
+      },
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!res.ok) return url
+    const text = await res.text()
+    // Truncate to avoid token bloat
+    return text.slice(0, 6000)
+  } catch {
+    return url
+  }
+}
+
 export async function generateSiteWithAI(goal: string, profileContext: string): Promise<SiteContent> {
+  // If it looks like a LinkedIn URL, fetch the actual profile content first
+  let resolvedContext = profileContext
+  if (profileContext.includes('linkedin.com/in/')) {
+    resolvedContext = await fetchLinkedInProfile(profileContext)
+  }
+
   const prompt = `
     You are an expert personal branding and web design AI.
     Your goal is to generate a professional website structure for a user whose goal is: "${goal}".
-    
-    Context about the user:
-    "${profileContext}"
+
+    Context about the user (extracted from their LinkedIn profile or provided directly):
+    "${resolvedContext}"
     
     Return ONLY a JSON object with the following structure:
     {
