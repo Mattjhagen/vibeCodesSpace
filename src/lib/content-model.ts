@@ -21,7 +21,7 @@ export const CONTENT_MODEL_VERSION = 2 as const
 // ---------------------------------------------------------------- primitives
 
 /** Schemes safe to put in an href. Everything else becomes "#". */
-const SAFE_LINK_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:']
+const SAFE_LINK_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:', 'sms:']
 
 /**
  * Restrict a user-supplied URL to something safe to render.
