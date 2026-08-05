@@ -379,7 +379,7 @@ export function BuilderShell({
               </div>
             </div>
             <div
-              className="flex-1 overflow-y-auto bg-white"
+              className="flex-1 overflow-y-auto bg-white site-preview"
               onClick={() => setSelectedId(null)}
             >
               {activePage?.sections.length ? (
