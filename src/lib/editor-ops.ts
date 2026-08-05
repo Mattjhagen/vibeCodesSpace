@@ -60,6 +60,8 @@ export function defaultBlock(type: BlockType): Block {
       return { id, type: 'contact', email: 'hello@example.com', phone: '', note: 'How to reach us.' }
     case 'divider':
       return { id, type: 'divider' }
+    case 'gallery':
+      return { id, type: 'gallery', items: [] }
   }
 }
 
