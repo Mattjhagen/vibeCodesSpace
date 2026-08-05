@@ -36,6 +36,7 @@ import {
 import { BuilderEditor } from './builder-editor'
 import { updateSiteContent } from './actions'
 import { toast } from 'sonner'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 type SiteRow = {
   id: string
@@ -156,6 +157,7 @@ export function BuilderShell({
           <Button variant="outline" size="sm" onClick={onSave} disabled={isSaving} className="w-24">
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
+          <ThemeToggle />
           <BuilderEditor siteId={site.id} initialStatus={site.status} initialSubdomain={site.subdomain ?? undefined} />
         </div>
       </header>

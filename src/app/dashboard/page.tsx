@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { logout } from './actions'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -52,9 +53,12 @@ export default async function DashboardPage() {
     <div className="flex flex-col w-full min-h-screen">
       <header className="flex h-16 items-center border-b px-6 justify-between bg-card text-card-foreground">
         <h1 className="text-lg font-bold">{workspace?.name || 'VibeCodes Workspace'}</h1>
-        <form action={logout}>
-          <Button variant="ghost" size="sm" type="submit">Sign out</Button>
-        </form>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <form action={logout}>
+            <Button variant="ghost" size="sm" type="submit">Sign out</Button>
+          </form>
+        </div>
       </header>
       <main className="flex-1 p-8 space-y-6">
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
