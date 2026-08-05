@@ -18,6 +18,7 @@ import {
   sanitizeImageSrc,
   sanitizeUrl,
 } from '@/lib/content-model'
+import { themeInlineStyle } from '@/lib/site-themes'
 import { cn } from '@/lib/utils'
 
 /**
@@ -332,14 +333,15 @@ export function SiteNav({ items, current }: { items: NavItem[]; current: string 
 
 export function PageView({ site, page }: { site: SiteContent; page: Page }) {
   const current = page.slug ? `/${page.slug}` : '/'
+  const themeStyle = themeInlineStyle(site.theme) as React.CSSProperties
   return (
-    <>
+    <div style={themeStyle} className="min-h-screen">
       <SiteNav items={navFor(site)} current={current} />
       <main>
         {page.sections.map((section) => (
           <SectionView key={section.id} section={section} />
         ))}
       </main>
-    </>
+    </div>
   )
 }

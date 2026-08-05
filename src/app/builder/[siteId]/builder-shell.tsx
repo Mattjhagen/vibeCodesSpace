@@ -37,6 +37,8 @@ import { BuilderEditor } from './builder-editor'
 import { updateSiteContent } from './actions'
 import { toast } from 'sonner'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { SITE_THEMES, themeInlineStyle } from '@/lib/site-themes'
+import { TemplatePicker } from '@/components/template-picker'
 
 type SiteRow = {
   id: string
@@ -59,10 +61,11 @@ export function BuilderShell({
   )
   const content = history.present
 
-  const [theme, setTheme] = useState(site.theme || 'Minimal Professional')
+  const [theme, setTheme] = useState(site.theme || 'clean')
   const [activePageId, setActivePageId] = useState(content.pages[0]?.id ?? '')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
 
   const activePage: Page | undefined =
     content.pages.find((p) => p.id === activePageId) ?? content.pages[0]
@@ -102,6 +105,14 @@ export function BuilderShell({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [doUndo, doRedo])
+
+  function applyTemplate(templateContent: SiteContent, themeId: string) {
+    setHistory((h) => commit(h, templateContent))
+    setTheme(themeId)
+    setActivePageId(templateContent.pages[0]?.id ?? '')
+    setSelectedId(null)
+    toast.success('Template applied')
+  }
 
   async function onSave() {
     setIsSaving(true)
@@ -345,21 +356,45 @@ export function BuilderShell({
               </section>
             )}
 
-            {/* Theme */}
+            {/* Templates */}
             <section className="space-y-2 border-t pt-4">
+              <span className="font-medium text-sm">Templates</span>
+              <button
+                onClick={() => setTemplatePickerOpen(true)}
+                className="w-full rounded-lg border border-dashed border-border p-3 text-sm text-muted-foreground hover:border-primary hover:text-primary transition text-center"
+              >
+                Browse templates →
+              </button>
+            </section>
+
+            {/* Theme */}
+            <section className="space-y-3 border-t pt-4">
               <span className="font-medium text-sm">Theme</span>
-              {['Minimal Professional', 'Creative Portfolio', 'Startup Profile'].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTheme(t)}
-                  className={cn(
-                    'w-full rounded-lg border p-2 text-left text-sm',
-                    theme === t ? 'border-primary bg-primary/5' : 'bg-card',
-                  )}
-                >
-                  {t}
-                </button>
-              ))}
+              <div className="grid grid-cols-4 gap-2">
+                {SITE_THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    title={t.name}
+                    onClick={() => setTheme(t.id)}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition',
+                      theme === t.id ? 'border-primary' : 'border-transparent hover:border-border',
+                    )}
+                  >
+                    {/* Color swatch */}
+                    <div
+                      className="w-8 h-8 rounded-full border border-border/50 shadow-sm"
+                      style={{ background: `linear-gradient(135deg, ${t.palette[0]} 50%, ${t.palette[2]} 50%)` }}
+                    />
+                    <span className="text-[9px] text-muted-foreground leading-tight text-center">{t.name}</span>
+                  </button>
+                ))}
+              </div>
+              {SITE_THEMES.find((t) => t.id === theme) && (
+                <p className="text-[11px] text-muted-foreground">
+                  {SITE_THEMES.find((t) => t.id === theme)?.description}
+                </p>
+              )}
             </section>
           </div>
         </aside>
@@ -379,7 +414,8 @@ export function BuilderShell({
               </div>
             </div>
             <div
-              className="flex-1 overflow-y-auto bg-white site-preview"
+              className="flex-1 overflow-y-auto site-preview"
+              style={themeInlineStyle(theme) as React.CSSProperties}
               onClick={() => setSelectedId(null)}
             >
               {activePage?.sections.length ? (
@@ -396,6 +432,12 @@ export function BuilderShell({
           </div>
         </div>
       </main>
+
+      <TemplatePicker
+        open={templatePickerOpen}
+        onClose={() => setTemplatePickerOpen(false)}
+        onApply={applyTemplate}
+      />
     </div>
   )
 }

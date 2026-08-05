@@ -1,0 +1,411 @@
+import type { SiteContent } from './content-model'
+
+export interface SiteTemplate {
+  id: string
+  name: string
+  description: string
+  category: string
+  themeId: string
+  thumbnail: string // Unsplash URL shown in the picker card
+  content: SiteContent
+}
+
+const IMG = (id: string) =>
+  `https://images.unsplash.com/${id}?w=1200&q=80&fit=crop&auto=format`
+
+export const SITE_TEMPLATES: SiteTemplate[] = [
+  // ──────────────────────────────────────────────────────────── Personal Resume
+  {
+    id: 'resume',
+    name: 'Personal Resume',
+    description: 'Clean CV with skills, experience, and a contact section.',
+    category: 'Personal',
+    themeId: 'clean',
+    thumbnail: IMG('photo-1507003211169-0a1dd7228f2d'),
+    content: {
+      version: 2,
+      siteType: 'portfolio',
+      theme: 'clean',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Home',
+          description: 'My professional resume',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'image', src: IMG('photo-1507003211169-0a1dd7228f2d'), alt: 'Professional photo' },
+                { id: 'b2', type: 'heading', level: 1, text: 'Your Name' },
+                { id: 'b3', type: 'text', text: 'Software Engineer · Product Designer · Creative Problem Solver' },
+                { id: 'b4', type: 'button', label: 'Download Resume', href: '#' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'plain',
+              blocks: [
+                { id: 'b5', type: 'heading', level: 2, text: 'About Me' },
+                { id: 'b6', type: 'text', text: 'I am a passionate professional with over 5 years of experience delivering high-quality work. I thrive in collaborative environments and love turning complex problems into elegant solutions.' },
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'plain',
+              blocks: [
+                { id: 'b7', type: 'heading', level: 2, text: 'Skills' },
+                { id: 'b8', type: 'list', ordered: false, items: ['React & Next.js', 'TypeScript', 'UI/UX Design', 'Node.js & REST APIs', 'Team Leadership'] },
+              ],
+            },
+            {
+              id: 's4',
+              variant: 'band',
+              blocks: [
+                { id: 'b9', type: 'heading', level: 2, text: 'Experience' },
+                { id: 'b10', type: 'cards', items: [
+                  { title: 'Senior Engineer — Acme Corp', body: '2022–Present. Led a team of 4 engineers building the core product.', href: '' },
+                  { title: 'Engineer — Startup Inc', body: '2019–2022. Full-stack development, shipped 3 major features.', href: '' },
+                  { title: 'Intern — Big Tech Co', body: '2018–2019. Built internal tooling used by 200+ employees.', href: '' },
+                ]},
+              ],
+            },
+            {
+              id: 's5',
+              variant: 'plain',
+              blocks: [
+                { id: 'b11', type: 'heading', level: 2, text: 'Get in Touch' },
+                { id: 'b12', type: 'contact', email: 'your@email.com', phone: '+1 555 000 0000', note: 'Open to new opportunities and collaborations.' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ─────────────────────────────────────────────────── Creative Portfolio
+  {
+    id: 'portfolio',
+    name: 'Creative Portfolio',
+    description: 'Bold dark design for designers, artists, and creatives.',
+    category: 'Creative',
+    themeId: 'midnight',
+    thumbnail: IMG('photo-1558618666-fcd25c85cd64'),
+    content: {
+      version: 2,
+      siteType: 'portfolio',
+      theme: 'midnight',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Work',
+          description: 'My creative portfolio',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'heading', level: 1, text: 'Creative Work' },
+                { id: 'b2', type: 'text', text: 'Photographer · Graphic Designer · Visual Storyteller' },
+                { id: 'b3', type: 'button', label: 'View Projects', href: '#projects' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'plain',
+              blocks: [
+                { id: 'b4', type: 'heading', level: 2, text: 'Selected Work' },
+                { id: 'b5', type: 'gallery', items: [
+                  { src: IMG('photo-1558618666-fcd25c85cd64'), alt: 'Creative project 1', caption: 'Brand Identity' },
+                  { src: IMG('photo-1561070791-2526d30994b5'), alt: 'Creative project 2', caption: 'Photography' },
+                  { src: IMG('photo-1626785774573-4b799315345d'), alt: 'Creative project 3', caption: 'Digital Art' },
+                  { src: IMG('photo-1547658719-da2b51169166'), alt: 'Creative project 4', caption: 'Web Design' },
+                  { src: IMG('photo-1587440871875-191322ee64b0'), alt: 'Creative project 5', caption: 'Illustration' },
+                  { src: IMG('photo-1618005198919-d3d4b5a92ead'), alt: 'Creative project 6', caption: 'Motion' },
+                ]},
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'split',
+              blocks: [
+                { id: 'b6', type: 'image', src: IMG('photo-1507003211169-0a1dd7228f2d'), alt: 'About me' },
+                { id: 'b7', type: 'heading', level: 2, text: 'About Me' },
+                { id: 'b8', type: 'text', text: 'I create visual experiences that connect brands with their audiences. Based in New York, available worldwide.' },
+                { id: 'b9', type: 'button', label: 'Work With Me', href: 'mailto:hello@example.com' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ─────────────────────────────────────────────────── Business / Services
+  {
+    id: 'business',
+    name: 'Business Services',
+    description: 'Professional services page with trust signals and CTA.',
+    category: 'Business',
+    themeId: 'ocean',
+    thumbnail: IMG('photo-1542744173-8e7e53415bb0'),
+    content: {
+      version: 2,
+      siteType: 'business',
+      theme: 'ocean',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Home',
+          description: 'Professional business services',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'heading', level: 1, text: 'Grow Your Business with Confidence' },
+                { id: 'b2', type: 'text', text: 'We help businesses of all sizes build, scale, and succeed. Trusted by over 500 companies.' },
+                { id: 'b3', type: 'button', label: 'Get a Free Consultation', href: 'mailto:hello@example.com' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'band',
+              blocks: [
+                { id: 'b4', type: 'stats', items: [
+                  { label: 'Clients Served', value: '500+' },
+                  { label: 'Years in Business', value: '12' },
+                  { label: 'Success Rate', value: '98%' },
+                ]},
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'plain',
+              blocks: [
+                { id: 'b5', type: 'heading', level: 2, text: 'Our Services' },
+                { id: 'b6', type: 'cards', items: [
+                  { title: 'Strategy Consulting', body: 'We work with your leadership team to define goals and build a roadmap for growth.', href: '' },
+                  { title: 'Digital Marketing', body: 'Data-driven campaigns that attract the right customers and convert them.', href: '' },
+                  { title: 'Operations & Systems', body: 'Streamline your processes so your team can focus on what matters most.', href: '' },
+                ]},
+              ],
+            },
+            {
+              id: 's4',
+              variant: 'plain',
+              blocks: [
+                { id: 'b7', type: 'quote', text: 'Working with this team transformed our business. Revenue grew 3x in the first year.', attribution: 'Jane Smith, CEO of TechCorp' },
+              ],
+            },
+            {
+              id: 's5',
+              variant: 'plain',
+              blocks: [
+                { id: 'b8', type: 'heading', level: 2, text: 'Ready to Get Started?' },
+                { id: 'b9', type: 'contact', email: 'hello@example.com', phone: '+1 555 000 0000', note: 'Contact us today for a free 30-minute consultation.' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ──────────────────────────────────────────────────── Photography Studio
+  {
+    id: 'photography',
+    name: 'Photography Studio',
+    description: 'Image-first layout for photographers and visual artists.',
+    category: 'Creative',
+    themeId: 'warm',
+    thumbnail: IMG('photo-1452587925148-ce544e77e70d'),
+    content: {
+      version: 2,
+      siteType: 'portfolio',
+      theme: 'warm',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Portfolio',
+          description: 'Photography portfolio',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'heading', level: 1, text: 'Capturing Moments That Last Forever' },
+                { id: 'b2', type: 'text', text: 'Portrait · Wedding · Lifestyle Photography' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'plain',
+              blocks: [
+                { id: 'b3', type: 'gallery', items: [
+                  { src: IMG('photo-1452587925148-ce544e77e70d'), alt: 'Photography sample 1', caption: '' },
+                  { src: IMG('photo-1516035069371-29a1b244cc32'), alt: 'Photography sample 2', caption: '' },
+                  { src: IMG('photo-1542038784456-1ea8e935640e'), alt: 'Photography sample 3', caption: '' },
+                  { src: IMG('photo-1502602898657-3e91760cbb34'), alt: 'Photography sample 4', caption: 'Paris' },
+                  { src: IMG('photo-1465101162946-4377e57745c3'), alt: 'Photography sample 5', caption: '' },
+                  { src: IMG('photo-1476514525535-07fb3b4ae5f1'), alt: 'Photography sample 6', caption: 'Travel' },
+                ]},
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'split',
+              blocks: [
+                { id: 'b4', type: 'image', src: IMG('photo-1507003211169-0a1dd7228f2d'), alt: 'Photographer' },
+                { id: 'b5', type: 'heading', level: 2, text: 'About the Photographer' },
+                { id: 'b6', type: 'text', text: 'Based in San Francisco. Available for portrait, wedding, and event photography worldwide. Booked 6 months in advance.' },
+                { id: 'b7', type: 'button', label: 'Book a Session', href: 'mailto:hello@example.com' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ──────────────────────────────────────────────────────── Consultant/Coach
+  {
+    id: 'coach',
+    name: 'Coach & Consultant',
+    description: 'Authority-building layout with testimonials and a clear CTA.',
+    category: 'Services',
+    themeId: 'forest',
+    thumbnail: IMG('photo-1552664730-d307ca884978'),
+    content: {
+      version: 2,
+      siteType: 'services',
+      theme: 'forest',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Home',
+          description: 'Coaching and consulting services',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'heading', level: 1, text: 'Unlock Your Full Potential' },
+                { id: 'b2', type: 'text', text: 'Executive coach and business consultant helping leaders and teams achieve breakthrough results.' },
+                { id: 'b3', type: 'button', label: 'Book a Discovery Call', href: 'mailto:hello@example.com' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'band',
+              blocks: [
+                { id: 'b4', type: 'stats', items: [
+                  { label: 'Clients Coached', value: '300+' },
+                  { label: 'Average Revenue Growth', value: '2.4×' },
+                  { label: 'Satisfaction Rate', value: '99%' },
+                ]},
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'plain',
+              blocks: [
+                { id: 'b5', type: 'heading', level: 2, text: 'How I Help' },
+                { id: 'b6', type: 'cards', items: [
+                  { title: '1:1 Executive Coaching', body: 'Weekly sessions focused on your leadership, clarity, and performance.', href: '' },
+                  { title: 'Team Workshops', body: 'Half-day or full-day intensives that realign your team around shared goals.', href: '' },
+                  { title: 'Business Strategy', body: '90-day sprints to identify growth levers and remove what is holding you back.', href: '' },
+                ]},
+              ],
+            },
+            {
+              id: 's4',
+              variant: 'plain',
+              blocks: [
+                { id: 'b7', type: 'quote', text: 'Three months in, I had more clarity, energy, and direction than I had in the previous three years.', attribution: 'Mark L., Founder & CEO' },
+              ],
+            },
+            {
+              id: 's5',
+              variant: 'split',
+              blocks: [
+                { id: 'b8', type: 'image', src: IMG('photo-1552664730-d307ca884978'), alt: 'Coach' },
+                { id: 'b9', type: 'heading', level: 2, text: 'About Me' },
+                { id: 'b10', type: 'text', text: 'Former Fortune 500 executive turned coach. I have led teams across 6 countries and helped hundreds of leaders step into their best selves.' },
+                { id: 'b11', type: 'button', label: 'Let\'s Talk', href: 'mailto:hello@example.com' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  // ──────────────────────────────────────────────────────── Restaurant/Food
+  {
+    id: 'restaurant',
+    name: 'Restaurant & Food',
+    description: 'Warm design for restaurants, cafes, and food businesses.',
+    category: 'Business',
+    themeId: 'coral',
+    thumbnail: IMG('photo-1414235077428-338989a2e8c0'),
+    content: {
+      version: 2,
+      siteType: 'business',
+      theme: 'coral',
+      pages: [
+        {
+          id: 'p1',
+          slug: '',
+          title: 'Welcome',
+          description: 'Our restaurant',
+          showInNav: true,
+          sections: [
+            {
+              id: 's1',
+              variant: 'hero',
+              blocks: [
+                { id: 'b1', type: 'image', src: IMG('photo-1414235077428-338989a2e8c0'), alt: 'Our food' },
+                { id: 'b2', type: 'heading', level: 1, text: 'Good Food, Great Company' },
+                { id: 'b3', type: 'text', text: 'Fresh ingredients, family recipes, and a warm atmosphere you\'ll want to come back to.' },
+                { id: 'b4', type: 'button', label: 'Make a Reservation', href: 'tel:+15550000000' },
+              ],
+            },
+            {
+              id: 's2',
+              variant: 'plain',
+              blocks: [
+                { id: 'b5', type: 'heading', level: 2, text: 'Our Specialties' },
+                { id: 'b6', type: 'gallery', items: [
+                  { src: IMG('photo-1414235077428-338989a2e8c0'), alt: 'Dish 1', caption: 'Signature Pasta' },
+                  { src: IMG('photo-1504674900247-0877df9cc836'), alt: 'Dish 2', caption: 'Fresh Catch' },
+                  { src: IMG('photo-1565299624946-b28f40a0ae38'), alt: 'Dish 3', caption: 'Wood-fired Pizza' },
+                  { src: IMG('photo-1540189549336-e6e99b931073'), alt: 'Dish 4', caption: 'Garden Salad' },
+                ]},
+              ],
+            },
+            {
+              id: 's3',
+              variant: 'band',
+              blocks: [
+                { id: 'b7', type: 'heading', level: 2, text: 'Visit Us' },
+                { id: 'b8', type: 'contact', email: 'reservations@example.com', phone: '+1 555 000 0000', note: '123 Main Street · Open Tue–Sun, 5pm–10pm' },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
