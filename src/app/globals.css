@@ -82,7 +82,10 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* Force light-mode tokens in the site preview pane regardless of app theme */
+/* Force light-mode tokens in the site preview pane regardless of app theme.
+   Must also set color/background explicitly so descendants inherit the right
+   computed values — CSS custom property overrides alone don't re-derive the
+   color already computed on <body> by dark mode. */
 .site-preview {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -101,6 +104,9 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  /* Re-derive from the overridden variables so children inherit correctly */
+  color: var(--foreground);
+  background-color: var(--background);
 }
 
 .dark {
