@@ -237,20 +237,39 @@ export async function POST(req: Request) {
       } else {
         // Normal SaaS Subscription
         if (session.client_reference_id) {
+          const plan = (session.metadata?.plan as string) || 'pro'
           await supabase.from('subscriptions').upsert({
             workspace_id: session.client_reference_id,
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: session.subscription as string,
             status: 'active',
-            plan: 'pro',
-          })
+            plan,
+          }, { onConflict: 'workspace_id' })
         }
       }
-    }
+    } else if (event.type === 'customer.subscription.updated') {
+      const sub = event.data.object as Stripe.Subscription
+      const priceId = sub.items.data[0]?.price?.id
+      let plan: string = 'pro'
+      if (priceId === process.env.STRIPE_PRICE_BUSINESS) plan = 'business'
+      else if (priceId === process.env.STRIPE_PRICE_PRO) plan = 'pro'
 
-    // Still unhandled: customer.subscription.updated / deleted. A cancellation
-    // or downgrade is never reflected, so a lapsed account stays 'pro'. Out of
-    // scope for the refund fix; tracked separately.
+      await supabase
+        .from('subscriptions')
+        .update({
+          status: sub.status,
+          plan,
+          current_period_end: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+        })
+        .eq('stripe_subscription_id', sub.id)
+
+    } else if (event.type === 'customer.subscription.deleted') {
+      const sub = event.data.object as Stripe.Subscription
+      await supabase
+        .from('subscriptions')
+        .update({ status: 'canceled', plan: 'free' })
+        .eq('stripe_subscription_id', sub.id)
+    }
 
     return NextResponse.json({ received: true })
   } catch (err: unknown) {

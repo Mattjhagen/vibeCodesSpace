@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       ],
       mode: 'subscription',
       client_reference_id: workspaceId,
+      metadata: { plan },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/pricing`,
     })
