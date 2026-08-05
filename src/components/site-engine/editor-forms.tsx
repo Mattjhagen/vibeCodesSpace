@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Block, parseBlock, sanitizeImageSrc } from '@/lib/content-model'
+import { Block, TextAlign, TextFont, TextSize, parseBlock, sanitizeImageSrc } from '@/lib/content-model'
 import { uploadSiteImage } from '@/app/builder/[siteId]/upload-action'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -80,6 +80,93 @@ function ImageUpload({
   )
 }
 
+// ----------------------------------------------------------------- format bar
+
+const FONT_OPTIONS: { value: TextFont; label: string }[] = [
+  { value: 'default', label: 'Default' },
+  { value: 'serif',   label: 'Serif' },
+  { value: 'mono',    label: 'Mono' },
+]
+
+const SIZE_OPTIONS: { value: TextSize; label: string }[] = [
+  { value: 'sm',   label: 'Small' },
+  { value: 'base', label: 'Normal' },
+  { value: 'lg',   label: 'Large' },
+  { value: 'xl',   label: 'X-Large' },
+  { value: '2xl',  label: '2X-Large' },
+]
+
+function FormatBar({
+  font,
+  size,
+  align,
+  onFont,
+  onSize,
+  onAlign,
+}: {
+  font: TextFont
+  size?: TextSize
+  align: TextAlign
+  onFont: (f: TextFont) => void
+  onSize?: (s: TextSize) => void
+  onAlign: (a: TextAlign) => void
+}) {
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-3 bg-muted/20">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Formatting</p>
+      <div className="flex gap-2">
+        <div className="grid gap-1 flex-1">
+          <label className="text-[10px] text-muted-foreground">Font</label>
+          <select
+            className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs"
+            value={font}
+            onChange={(e) => onFont(e.target.value as TextFont)}
+          >
+            {FONT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        {onSize && (
+          <div className="grid gap-1 flex-1">
+            <label className="text-[10px] text-muted-foreground">Size</label>
+            <select
+              className="w-full rounded border border-input bg-transparent px-2 py-1 text-xs"
+              value={size ?? 'base'}
+              onChange={(e) => onSize(e.target.value as TextSize)}
+            >
+              {SIZE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+      <div className="grid gap-1">
+        <label className="text-[10px] text-muted-foreground">Alignment</label>
+        <div className="flex gap-1">
+          {(['left', 'center', 'right'] as const).map((a) => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => onAlign(a)}
+              title={`Align ${a}`}
+              className={cn(
+                'flex-1 py-1 rounded text-xs border transition',
+                align === a
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border text-muted-foreground hover:border-primary/50',
+              )}
+            >
+              {a === 'left' ? '⬛▪▪' : a === 'center' ? '▪⬛▪' : '▪▪⬛'}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function BlockEditor({
   block,
   siteId,
@@ -112,12 +199,28 @@ export function BlockEditor({
               <option value={3}>Sub-section (H3)</option>
             </select>
           </div>
+          <FormatBar
+            font={block.font ?? 'default'}
+            align={block.align ?? 'left'}
+            onFont={(f) => patch({ font: f })}
+            onAlign={(a) => patch({ align: a })}
+          />
         </div>
       )
 
     case 'text':
       return (
-        <Field label="Text" value={block.text} onChange={(v) => patch({ text: v })} multiline />
+        <div className="space-y-4">
+          <Field label="Text" value={block.text} onChange={(v) => patch({ text: v })} multiline />
+          <FormatBar
+            font={block.font ?? 'default'}
+            size={block.size ?? 'base'}
+            align={block.align ?? 'left'}
+            onFont={(f) => patch({ font: f })}
+            onSize={(s) => patch({ size: s })}
+            onAlign={(a) => patch({ align: a })}
+          />
+        </div>
       )
 
     case 'image':

@@ -14,12 +14,35 @@ import {
   Page,
   Section,
   SiteContent,
+  TextAlign,
+  TextFont,
+  TextSize,
   navFor,
   sanitizeImageSrc,
   sanitizeUrl,
 } from '@/lib/content-model'
 import { themeInlineStyle } from '@/lib/site-themes'
 import { cn } from '@/lib/utils'
+
+const FONT_FAMILY: Record<TextFont, string | undefined> = {
+  default: undefined,
+  serif: "Georgia, 'Times New Roman', serif",
+  mono: "'Courier New', Courier, monospace",
+}
+
+const SIZE_CLASS: Record<TextSize, string> = {
+  sm: 'text-sm',
+  base: 'text-base',
+  lg: 'text-lg',
+  xl: 'text-xl',
+  '2xl': 'text-2xl',
+}
+
+const ALIGN_CLASS: Record<TextAlign, string> = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+}
 
 /**
  * Editing affordances, supplied only by the builder.
@@ -41,18 +64,21 @@ function Editable({
   blockId,
   text,
   className,
+  style,
   edit,
 }: {
   as: 'h1' | 'h2' | 'h3' | 'p'
   blockId: string
   text: string
   className?: string
+  style?: React.CSSProperties
   edit?: EditHooks
 }) {
-  if (!edit) return <Tag className={className}>{text}</Tag>
+  if (!edit) return <Tag className={className} style={style}>{text}</Tag>
   return (
     <Tag
       className={cn(className, 'outline-none focus:bg-primary/5 rounded-sm')}
+      style={style}
       contentEditable
       suppressContentEditableWarning
       spellCheck={false}
@@ -75,36 +101,48 @@ function BlockView({
   edit?: EditHooks
 }) {
   switch (block.type) {
-    case 'heading':
+    case 'heading': {
+      const headingStyle: React.CSSProperties = block.font && block.font !== 'default'
+        ? { fontFamily: FONT_FAMILY[block.font] }
+        : {}
       return (
         <Editable
           as={`h${block.level}` as 'h1' | 'h2' | 'h3'}
           blockId={block.id}
           text={block.text}
           edit={edit}
+          style={headingStyle}
           className={cn(
             'font-bold tracking-tight text-balance',
             block.level === 1 && 'text-4xl sm:text-5xl lg:text-6xl',
             block.level === 2 && 'text-2xl sm:text-3xl',
             block.level === 3 && 'text-xl sm:text-2xl',
+            block.align && ALIGN_CLASS[block.align],
           )}
         />
       )
+    }
 
-    case 'text':
+    case 'text': {
+      const textStyle: React.CSSProperties = block.font && block.font !== 'default'
+        ? { fontFamily: FONT_FAMILY[block.font] }
+        : {}
       return (
         <Editable
           as="p"
           blockId={block.id}
           text={block.text}
           edit={edit}
+          style={textStyle}
           className={cn(
-            'leading-relaxed text-pretty',
-            inHero ? 'text-lg sm:text-xl max-w-2xl' : 'max-w-prose',
-            'text-muted-foreground',
+            'leading-relaxed text-pretty text-muted-foreground',
+            block.size ? SIZE_CLASS[block.size] : inHero ? 'text-lg sm:text-xl' : 'text-base',
+            !block.size && !inHero && 'max-w-prose',
+            block.align && ALIGN_CLASS[block.align],
           )}
         />
       )
+    }
 
     case 'image':
       // Plain <img>: sites render on arbitrary hosts, so next/image's loader

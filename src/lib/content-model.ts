@@ -85,9 +85,17 @@ function makeId(prefix: string): string {
 
 // -------------------------------------------------------------------- blocks
 
+export type TextFont = 'default' | 'serif' | 'mono'
+export type TextAlign = 'left' | 'center' | 'right'
+export type TextSize = 'sm' | 'base' | 'lg' | 'xl' | '2xl'
+
+export const TEXT_FONTS: TextFont[] = ['default', 'serif', 'mono']
+export const TEXT_ALIGNS: TextAlign[] = ['left', 'center', 'right']
+export const TEXT_SIZES: TextSize[] = ['sm', 'base', 'lg', 'xl', '2xl']
+
 export type Block =
-  | { id: string; type: 'heading'; level: 1 | 2 | 3; text: string }
-  | { id: string; type: 'text'; text: string }
+  | { id: string; type: 'heading'; level: 1 | 2 | 3; text: string; font?: TextFont; align?: TextAlign }
+  | { id: string; type: 'text'; text: string; font?: TextFont; size?: TextSize; align?: TextAlign }
   | { id: string; type: 'image'; src: string; alt: string }
   | { id: string; type: 'button'; label: string; href: string }
   | { id: string; type: 'list'; ordered: boolean; items: string[] }
@@ -118,11 +126,17 @@ export function parseBlock(input: unknown): Block | null {
       if (!text) return null
       const lvl = Number(raw.level)
       const level = lvl === 1 || lvl === 2 || lvl === 3 ? (lvl as 1 | 2 | 3) : 2
-      return { id, type: 'heading', level, text }
+      const font = TEXT_FONTS.includes(raw.font as TextFont) ? (raw.font as TextFont) : undefined
+      const align = TEXT_ALIGNS.includes(raw.align as TextAlign) ? (raw.align as TextAlign) : undefined
+      return { id, type: 'heading', level, text, ...(font && { font }), ...(align && { align }) }
     }
     case 'text': {
       const text = str(raw.text, MAX_TEXT)
-      return text ? { id, type: 'text', text } : null
+      if (!text) return null
+      const font = TEXT_FONTS.includes(raw.font as TextFont) ? (raw.font as TextFont) : undefined
+      const size = TEXT_SIZES.includes(raw.size as TextSize) ? (raw.size as TextSize) : undefined
+      const align = TEXT_ALIGNS.includes(raw.align as TextAlign) ? (raw.align as TextAlign) : undefined
+      return { id, type: 'text', text, ...(font && { font }), ...(size && { size }), ...(align && { align }) }
     }
     case 'image': {
       const src = sanitizeImageSrc(raw.src)

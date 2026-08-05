@@ -18,14 +18,15 @@ interface Props {
   siteId: string
   initialStatus: string
   initialSubdomain?: string
+  onSaveContent?: () => Promise<{ success: boolean; error?: string }>
 }
 
-type Phase = 'form' | 'going-live' | 'live'
+type Phase = 'form' | 'confirm-update' | 'going-live' | 'live'
 type ProbeStage = 'dns' | 'ssl' | 'live' | 'unknown'
 
-const POLL_INTERVAL = 30 // seconds between checks — long enough for DNS/SSL to progress
+const POLL_INTERVAL = 30
 
-export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props) {
+export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveContent }: Props) {
   const [open, setOpen] = useState(false)
   const [subdomain, setSubdomain] = useState(initialSubdomain ?? '')
   const [publishing, setPublishing] = useState(false)
@@ -38,6 +39,7 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
   const [attempts, setAttempts] = useState(0)
   const [probeStage, setProbeStage] = useState<ProbeStage>('dns')
   const [liveUrl, setLiveUrl] = useState<string | null>(null)
+  const [showAddressChange, setShowAddressChange] = useState(false)
 
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -70,7 +72,6 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
       const res = await fetch(`/api/probe?sub=${encodeURIComponent(sub)}`, { cache: 'no-store' })
       const data = await res.json() as { ok: boolean; stage: ProbeStage; status: number }
       setProbeStage(data.stage)
-
       if (data.ok && data.stage === 'live') {
         stopTimers()
         setPhase('live')
@@ -80,7 +81,6 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
     } catch {
       // network error — keep trying
     }
-    // Never give up — keep polling until actually live
     scheduleNextPoll(sub, attempt + 1)
   }, [stopTimers, scheduleNextPoll])
 
@@ -93,30 +93,20 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
 
   useEffect(() => () => stopTimers(), [stopTimers])
 
-  function resetToForm() {
-    stopTimers()
-    setPhase('form')
+  function startGoingLive(sub: string) {
     setCountdown(POLL_INTERVAL)
     setAttempts(0)
     setProbeStage('dns')
+    setPhase('going-live')
   }
 
-  async function handlePublish() {
-    if (!subdomain.trim()) return
-    setPublishing(true)
-    const result = await publishSite(siteId, subdomain.trim())
-    setPublishing(false)
-
-    if (result.ok) {
-      setPublishedUrl(result.url)
-      setStatus('published')
-      setPhase('going-live')
-      setCountdown(POLL_INTERVAL)
-      setAttempts(0)
-      setProbeStage('dns')
-    } else {
-      toast.error(result.error)
-    }
+  function resetToForm() {
+    stopTimers()
+    setPhase(isPublished ? 'confirm-update' : 'form')
+    setCountdown(POLL_INTERVAL)
+    setAttempts(0)
+    setProbeStage('dns')
+    setShowAddressChange(false)
   }
 
   function handleOpenChange(next: boolean) {
@@ -124,13 +114,51 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
     setOpen(next)
   }
 
+  function handleButtonClick() {
+    setOpen(true)
+    setPhase(isPublished ? 'confirm-update' : 'form')
+    setShowAddressChange(false)
+  }
+
+  // For already-published sites: save content then probe
+  async function handlePublishChanges() {
+    setPublishing(true)
+    if (onSaveContent) {
+      const result = await onSaveContent()
+      if (!result.success) {
+        toast.error('Failed to save: ' + (result.error ?? 'Unknown error'))
+        setPublishing(false)
+        return
+      }
+    }
+    setPublishing(false)
+    startGoingLive(subdomain)
+  }
+
+  // First publish or address change
+  async function handlePublish() {
+    if (!subdomain.trim()) return
+    setPublishing(true)
+    if (onSaveContent) {
+      await onSaveContent()
+    }
+    const result = await publishSite(siteId, subdomain.trim())
+    setPublishing(false)
+    if (result.ok) {
+      setPublishedUrl(result.url)
+      setStatus('published')
+      setShowAddressChange(false)
+      startGoingLive(subdomain.trim())
+    } else {
+      toast.error(result.error)
+    }
+  }
+
   const url = liveUrl ?? publishedUrl ?? `https://${subdomain}.vibecodes.space`
 
-  // Step states derived from probeStage
   const dnsReady = probeStage === 'ssl' || probeStage === 'live'
   const sslReady = probeStage === 'live'
   const siteReady = phase === 'live'
-
   const dnsSpinning = !dnsReady && phase === 'going-live'
   const sslSpinning = dnsReady && !sslReady && phase === 'going-live'
   const siteSpinning = sslReady && !siteReady
@@ -142,27 +170,95 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
     <>
       <Button
         size="sm"
-        onClick={() => setOpen(true)}
-        variant={isPublished ? 'outline' : 'default'}
+        onClick={handleButtonClick}
         className="w-28"
       >
-        {isPublished ? 'Published ↗' : 'Publish'}
+        Publish
       </Button>
+      {isPublished && (
+        <a
+          href={publishedUrl!}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-muted-foreground hover:text-foreground transition"
+          title="Visit live site"
+        >
+          ↗
+        </a>
+      )}
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md">
 
-          {/* ── Form phase ── */}
+          {/* ── Confirm update phase (already published) ── */}
+          {phase === 'confirm-update' && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Publish your changes</DialogTitle>
+                <DialogDescription>
+                  Save and push your latest edits to your live site.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="rounded-lg bg-muted px-4 py-3 font-mono text-sm break-all text-center">
+                  {publishedUrl}
+                </div>
+                <Button
+                  className="w-full"
+                  onClick={handlePublishChanges}
+                  disabled={publishing}
+                >
+                  {publishing ? 'Saving…' : 'Publish changes'}
+                </Button>
+                <div className="border-t pt-3">
+                  {!showAddressChange ? (
+                    <button
+                      className="text-xs text-muted-foreground hover:text-foreground transition w-full text-center"
+                      onClick={() => setShowAddressChange(true)}
+                    >
+                      Change site address →
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">Enter a new address for your site:</p>
+                      <div className="flex items-center gap-0">
+                        <Input
+                          value={subdomain}
+                          onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          placeholder="your-name"
+                          className="rounded-r-none border-r-0 font-mono text-sm"
+                        />
+                        <span className="flex h-9 items-center rounded-r-md border border-input bg-muted px-3 text-sm text-muted-foreground font-mono whitespace-nowrap">
+                          .vibecodes.space
+                        </span>
+                      </div>
+                      <Button
+                        className="w-full"
+                        onClick={handlePublish}
+                        disabled={publishing || !subdomain.trim()}
+                      >
+                        {publishing ? 'Updating…' : 'Update address & publish'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <Button variant="outline" className="w-full" onClick={() => handleOpenChange(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* ── First-time publish form ── */}
           {phase === 'form' && (
             <>
               <DialogHeader>
-                <DialogTitle>{isPublished ? 'Update your site address' : 'Publish your site'}</DialogTitle>
+                <DialogTitle>Publish your site</DialogTitle>
                 <DialogDescription>
                   Choose a subdomain — your site will be live at{' '}
                   <span className="font-mono text-foreground">[name].vibecodes.space</span>
                 </DialogDescription>
               </DialogHeader>
-
               <div className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="subdomain">Site address</Label>
@@ -170,12 +266,12 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                     <Input
                       id="subdomain"
                       value={subdomain}
-                      onChange={e =>
+                      onChange={(e) =>
                         setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
                       }
                       placeholder="your-name"
                       className="rounded-r-none border-r-0 font-mono"
-                      onKeyDown={e => e.key === 'Enter' && handlePublish()}
+                      onKeyDown={(e) => e.key === 'Enter' && handlePublish()}
                       autoFocus
                     />
                     <span className="flex h-9 items-center rounded-r-md border border-input bg-muted px-3 text-sm text-muted-foreground font-mono whitespace-nowrap">
@@ -186,25 +282,10 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                     3–63 characters, lowercase letters, numbers, and hyphens only.
                   </p>
                 </div>
-
-                {isPublished && publishedUrl && (
-                  <div className="rounded-md bg-muted px-3 py-2 text-sm">
-                    <span className="text-muted-foreground">Currently live at </span>
-                    <a
-                      href={publishedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono text-primary hover:underline break-all"
-                    >
-                      {publishedUrl}
-                    </a>
-                  </div>
-                )}
-
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
                   <Button onClick={handlePublish} disabled={publishing || !subdomain.trim()}>
-                    {publishing ? 'Publishing…' : isPublished ? 'Update address' : 'Publish'}
+                    {publishing ? 'Publishing…' : 'Publish'}
                   </Button>
                 </div>
               </div>
@@ -220,14 +301,10 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                   Checking every 30 seconds until your site is fully reachable.
                 </DialogDescription>
               </DialogHeader>
-
               <div className="space-y-5 pt-2">
-                {/* URL pill */}
                 <div className="rounded-lg bg-muted px-4 py-3 font-mono text-sm break-all text-center">
                   {url}
                 </div>
-
-                {/* Status rows */}
                 <div className="space-y-2 text-sm">
                   <StatusRow done label="Subdomain claimed" />
                   <StatusRow done label="Site content published" />
@@ -235,21 +312,17 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                   <StatusRow done={sslReady} spinning={sslSpinning} muted={!dnsReady} label="SSL certificate active" />
                   <StatusRow done={siteReady} spinning={siteSpinning} muted={!sslReady} label="Site reachable" />
                 </div>
-
-                {/* Stage hint */}
                 <div className="rounded-lg bg-muted/60 px-4 py-3 text-xs text-muted-foreground space-y-1">
                   {probeStage === 'dns' && (
-                    <p>⏳ Waiting for DNS to propagate — this can take a few minutes to a few hours depending on your registrar.</p>
+                    <p>⏳ Waiting for DNS to propagate — this can take a few minutes to a few hours.</p>
                   )}
                   {probeStage === 'ssl' && (
-                    <p>🔐 DNS is live! Waiting for SSL certificate to finish provisioning — usually under 2 minutes.</p>
+                    <p>🔐 DNS is live! Waiting for SSL certificate — usually under 2 minutes.</p>
                   )}
                   {probeStage === 'unknown' && (
                     <p>🔄 Checking… still propagating.</p>
                   )}
                 </div>
-
-                {/* Countdown */}
                 <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                   <span className="text-sm text-muted-foreground">
                     Next check in <span className="font-mono font-semibold text-foreground">{countdown}s</span>
@@ -258,11 +331,9 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                     {attempts > 0 ? elapsedLabel : 'First check…'}
                   </span>
                 </div>
-
                 <p className="text-[11px] text-muted-foreground text-center">
                   You can close this — your site will still go live in the background.
                 </p>
-
                 <Button variant="outline" className="w-full" onClick={() => handleOpenChange(false)}>
                   Close and check later
                 </Button>
@@ -279,12 +350,10 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                   Anyone with the link can now visit your site.
                 </DialogDescription>
               </DialogHeader>
-
               <div className="space-y-4 pt-2">
                 <div className="rounded-lg bg-muted px-4 py-3 font-mono text-sm break-all text-center">
                   {url}
                 </div>
-
                 <div className="space-y-2 text-sm">
                   <StatusRow done label="Subdomain claimed" />
                   <StatusRow done label="Site content published" />
@@ -292,7 +361,6 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain }: Props
                   <StatusRow done label="SSL certificate active" />
                   <StatusRow done label="Site reachable" />
                 </div>
-
                 <div className="flex gap-2">
                   <Button
                     className="flex-1"

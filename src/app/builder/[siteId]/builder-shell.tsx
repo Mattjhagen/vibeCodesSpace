@@ -114,12 +114,17 @@ export function BuilderShell({
     toast.success('Template applied')
   }
 
-  async function onSave() {
+  async function saveContent() {
     setIsSaving(true)
     const result = await updateSiteContent(site.id, content, theme)
+    setIsSaving(false)
+    return result
+  }
+
+  async function onSave() {
+    const result = await saveContent()
     if (result.success) toast.success('Draft saved')
     else toast.error('Failed to save: ' + result.error)
-    setIsSaving(false)
   }
 
   const editHooks = {
@@ -169,7 +174,12 @@ export function BuilderShell({
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
           <ThemeToggle />
-          <BuilderEditor siteId={site.id} initialStatus={site.status} initialSubdomain={site.subdomain ?? undefined} />
+          <BuilderEditor
+            siteId={site.id}
+            initialStatus={site.status}
+            initialSubdomain={site.subdomain ?? undefined}
+            onSaveContent={saveContent}
+          />
         </div>
       </header>
 
