@@ -97,33 +97,34 @@ function DomainRow({ result }: { result: DomainResult }) {
   )
 }
 
-// Set NEXT_PUBLIC_MICROSOFT_AFFILIATE_URL in Vercel env vars to your Impact
-// tracking link once approved (impact.com → Microsoft 365 program).
-// Falls back to the direct Microsoft 365 Business page if unset.
-const MICROSOFT_URL =
-  process.env.NEXT_PUBLIC_MICROSOFT_AFFILIATE_URL ||
-  'https://www.microsoft.com/en-us/microsoft-365/business/compare-all-plans'
+// Set NEXT_PUBLIC_ZOHO_AFFILIATE_URL in Vercel env vars to your Zoho affiliate
+// tracking link once approved. Falls back to direct Zoho Mail signup if unset.
+const ZOHO_URL =
+  process.env.NEXT_PUBLIC_ZOHO_AFFILIATE_URL ||
+  'https://www.zoho.com/mail/zohomail-pricing.html'
 
-function Microsoft365Card({ domain }: { domain?: string }) {
+function ZohoMailCard({ domain }: { domain?: string }) {
   return (
-    <div className="rounded-xl border border-[#0078D4]/20 bg-gradient-to-br from-[#0078D4]/5 via-background to-[#7FBA00]/5 px-5 py-5 space-y-3">
+    <div className="rounded-xl border border-[#E42527]/20 bg-gradient-to-br from-[#E42527]/5 via-background to-[#F5A623]/5 px-5 py-5 space-y-3">
       <div className="flex items-center gap-2.5">
-        <MicrosoftIcon className="h-5 w-5 shrink-0" />
-        <span className="font-semibold text-sm">Add business email with Microsoft 365</span>
+        <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden>
+          <rect width="24" height="24" rx="3" fill="#E42527"/>
+          <path d="M4 7l8 5 8-5M4 7v10h16V7M4 7h16" stroke="white" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+        </svg>
+        <span className="font-semibold text-sm">Add business email with Zoho Mail</span>
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
         Get{' '}
         <span className="font-mono text-foreground text-xs">
           {domain ? `you@${domain}` : 'you@yourdomain.com'}
         </span>{' '}
-        with Microsoft 365 — includes Outlook, Teams, Word, Excel, and 1 TB OneDrive per user.
+        with Zoho Mail — ad-free business email with 5 GB per user, calendar, and contacts included.
       </p>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground">From $6/user/mo · 1-month free trial</span>
-        <a href={MICROSOFT_URL} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm" className="gap-1.5 shrink-0 border-[#0078D4]/30 hover:border-[#0078D4]/60">
-            <MicrosoftIcon className="h-3.5 w-3.5" />
-            Get Microsoft 365
+        <span className="text-xs text-muted-foreground">From $1/user/mo · free plan available</span>
+        <a href={ZOHO_URL} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="sm" className="gap-1.5 shrink-0 border-[#E42527]/30 hover:border-[#E42527]/60">
+            Get Zoho Mail
           </Button>
         </a>
       </div>
@@ -250,7 +251,7 @@ export default function DomainSearchPage() {
 
           {/* Google Workspace upsell */}
           {available.length > 0 && (
-            <Microsoft365Card domain={bestDomain} />
+            <ZohoMailCard domain={bestDomain} />
           )}
         </div>
       )}
