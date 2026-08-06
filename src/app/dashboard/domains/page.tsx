@@ -25,14 +25,14 @@ function NamecheapMark({ className }: { className?: string }) {
   )
 }
 
-// Google Workspace icon
-function GoogleIcon({ className }: { className?: string }) {
+// Microsoft logo — four colored squares
+function MicrosoftIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden>
-      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      <rect x="1" y="1" width="10.5" height="10.5" fill="#F25022"/>
+      <rect x="12.5" y="1" width="10.5" height="10.5" fill="#7FBA00"/>
+      <rect x="1" y="12.5" width="10.5" height="10.5" fill="#00A4EF"/>
+      <rect x="12.5" y="12.5" width="10.5" height="10.5" fill="#FFB900"/>
     </svg>
   )
 }
@@ -97,33 +97,33 @@ function DomainRow({ result }: { result: DomainResult }) {
   )
 }
 
-function GoogleWorkspaceCard({ domain }: { domain?: string }) {
-  // GOOGLE_WORKSPACE_AFFILIATE_URL is set server-side and baked into the page
-  // as a data attribute or just hardcode the default. Since this is a client
-  // component we use a fallback URL — swap for your affiliate URL in the env.
-  const wsUrl = domain
-    ? `https://workspace.google.com/intl/en/gmail/?hl=en`
-    : `https://workspace.google.com/intl/en/gmail/?hl=en`
+// Set NEXT_PUBLIC_MICROSOFT_AFFILIATE_URL in Vercel env vars to your Impact
+// tracking link once approved (impact.com → Microsoft 365 program).
+// Falls back to the direct Microsoft 365 Business page if unset.
+const MICROSOFT_URL =
+  process.env.NEXT_PUBLIC_MICROSOFT_AFFILIATE_URL ||
+  'https://www.microsoft.com/en-us/microsoft-365/business/compare-all-plans'
 
+function Microsoft365Card({ domain }: { domain?: string }) {
   return (
-    <div className="rounded-xl border border-border bg-gradient-to-br from-blue-500/5 via-background to-green-500/5 px-5 py-5 space-y-3">
+    <div className="rounded-xl border border-[#0078D4]/20 bg-gradient-to-br from-[#0078D4]/5 via-background to-[#7FBA00]/5 px-5 py-5 space-y-3">
       <div className="flex items-center gap-2.5">
-        <GoogleIcon className="h-5 w-5 shrink-0" />
-        <span className="font-semibold text-sm">Add business email</span>
+        <MicrosoftIcon className="h-5 w-5 shrink-0" />
+        <span className="font-semibold text-sm">Add business email with Microsoft 365</span>
       </div>
       <p className="text-sm text-muted-foreground leading-relaxed">
         Get{' '}
         <span className="font-mono text-foreground text-xs">
           {domain ? `you@${domain}` : 'you@yourdomain.com'}
         </span>{' '}
-        with Google Workspace — includes Gmail, Drive, Meet, and Calendar for your whole team.
+        with Microsoft 365 — includes Outlook, Teams, Word, Excel, and 1 TB OneDrive per user.
       </p>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted-foreground">From $6/user/mo · 14-day free trial</span>
-        <a href={wsUrl} target="_blank" rel="noopener noreferrer">
-          <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
-            <GoogleIcon className="h-3.5 w-3.5" />
-            Set up Google Workspace
+        <span className="text-xs text-muted-foreground">From $6/user/mo · 1-month free trial</span>
+        <a href={MICROSOFT_URL} target="_blank" rel="noopener noreferrer">
+          <Button variant="outline" size="sm" className="gap-1.5 shrink-0 border-[#0078D4]/30 hover:border-[#0078D4]/60">
+            <MicrosoftIcon className="h-3.5 w-3.5" />
+            Get Microsoft 365
           </Button>
         </a>
       </div>
@@ -250,7 +250,7 @@ export default function DomainSearchPage() {
 
           {/* Google Workspace upsell */}
           {available.length > 0 && (
-            <GoogleWorkspaceCard domain={bestDomain} />
+            <Microsoft365Card domain={bestDomain} />
           )}
         </div>
       )}
