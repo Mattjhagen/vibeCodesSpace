@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "VibeCodes Space",
   description: "Create a professional personal website in minutes",
   other: {
-    "impact-site-verification": "2dbaa6a9-15d4-4b37-a2a0-40f7c58b5887",
+    "impact-site-verification": "945b781c-7d3c-4c41-bcc7-5fe9a4343fad",
   },
 };
 
