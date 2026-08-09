@@ -89,6 +89,34 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        <div className="rounded-xl border bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-violet-500/30 p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-semibold uppercase tracking-widest text-violet-400">Done-for-you</span>
+            </div>
+            <h3 className="text-xl font-bold mb-1">Rather have us build it?</h3>
+            <p className="text-sm text-muted-foreground max-w-lg">
+              Skip the editor entirely. PurePulse handles design, development, SEO, and ongoing updates — starting at <strong className="text-foreground">$20/mo</strong> after a $150 deposit. 12-month plans, no surprises.
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+              <li>✓ Starter $20/mo — hosting + 2 updates</li>
+              <li>✓ Growth $50/mo — unlimited updates + SEO</li>
+              <li>✓ Premium $75/mo — custom dev + phone support</li>
+              <li>✓ Business $100/mo — monthly planning call</li>
+            </ul>
+          </div>
+          <a
+            href="https://purepulse.one"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0"
+          >
+            <Button className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
+              Book a Consultation →
+            </Button>
+          </a>
+        </div>
       </main>
     </div>
   )
