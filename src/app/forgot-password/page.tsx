@@ -1,13 +1,34 @@
+'use client'
+
+import { useState } from 'react'
 import { resetPassword } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
-export default async function ForgotPasswordPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const searchParams = await props.searchParams
-  const message = typeof searchParams?.message === 'string' ? searchParams.message : undefined;
+export default function ForgotPasswordPage() {
+  const [loading, setLoading] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    setLoading(true)
+    const result = await resetPassword(formData)
+    setLoading(false)
+    if ('success' in result) {
+      setSubmitted(true)
+      toast.success('Check your email for the reset link', {
+        description: 'If an account exists for that address, a reset link is on its way.',
+        duration: 8000,
+      })
+    } else {
+      toast.error(result.error)
+    }
+  }
 
   return (
     <div className="flex h-screen w-full items-center justify-center p-4">
@@ -19,36 +40,42 @@ export default async function ForgotPasswordPage(props: { searchParams: Promise<
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            
-            {message && (
-              <p className="text-sm font-medium text-destructive">{message}</p>
-            )}
-
-            <Button
-              formAction={resetPassword}
-              type="submit"
-              className="w-full font-semibold"
-            >
-              Send Reset Link
-            </Button>
-            
-            <div className="text-center mt-2">
+          {submitted ? (
+            <div className="grid gap-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Check your inbox for a reset link.
+              </p>
               <Link href="/login" className="text-sm text-muted-foreground hover:underline">
                 Back to Login
               </Link>
             </div>
-          </form>
+          ) : (
+            <form className="grid gap-4" onSubmit={handleSubmit}>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  required
+                  disabled={loading}
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full font-semibold"
+                disabled={loading}
+              >
+                {loading ? 'Sending…' : 'Send Reset Link'}
+              </Button>
+              <div className="text-center mt-2">
+                <Link href="/login" className="text-sm text-muted-foreground hover:underline">
+                  Back to Login
+                </Link>
+              </div>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>

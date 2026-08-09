@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useSearchParams } from 'next/navigation'
+import { toast } from 'sonner'
 
 function Spinner() {
   return (
@@ -38,10 +39,24 @@ function LoginForm() {
   const message = searchParams.get('message') ?? undefined
   const [loading, setLoading] = useState<'login' | 'signup' | 'google' | null>(null)
 
-  async function handleAction(action: typeof login, type: 'login' | 'signup', formData: FormData) {
-    setLoading(type)
-    await action(formData)
+  async function handleLogin(formData: FormData) {
+    setLoading('login')
+    await login(formData)
     setLoading(null)
+  }
+
+  async function handleSignup(formData: FormData) {
+    setLoading('signup')
+    const result = await signup(formData)
+    setLoading(null)
+    if ('confirm_email' in result) {
+      toast.success('Check your email to confirm your account', {
+        description: 'We sent a confirmation link — click it to activate your account.',
+        duration: 8000,
+      })
+    } else {
+      toast.error(result.error)
+    }
   }
 
   return (
@@ -116,7 +131,7 @@ function LoginForm() {
               type="submit"
               className="w-full font-semibold"
               disabled={loading !== null}
-              formAction={(formData) => handleAction(login, 'login', formData)}
+              formAction={handleLogin}
             >
               {loading === 'login' ? <><Spinner />Logging in…</> : 'Login'}
             </Button>
@@ -125,7 +140,7 @@ function LoginForm() {
               variant="outline"
               className="w-full font-semibold"
               disabled={loading !== null}
-              formAction={(formData) => handleAction(signup, 'signup', formData)}
+              formAction={handleSignup}
             >
               {loading === 'signup' ? <><Spinner />Creating account…</> : 'Sign up'}
             </Button>
