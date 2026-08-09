@@ -4,21 +4,8 @@ import { checkAvailability } from '@/lib/dynadot'
 
 const DEFAULT_TLDS = ['.com', '.net', '.org', '.io', '.co', '.dev']
 
-/**
- * Builds a Namecheap affiliate buy URL.
- *
- * Namecheap's affiliate program runs on Impact. Set NAMECHEAP_AFFILIATE_ID to
- * your Impact publisher ID — the full tracking URL becomes:
- *   https://namecheap.pxf.io/c/{id}/1383/1383?u=https://www.namecheap.com/...
- *
- * Leave NAMECHEAP_AFFILIATE_ID unset to link directly (no tracking, no commission).
- */
-function namecheapBuyUrl(domain: string): string {
-  const dest = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`
-  const affId = process.env.NAMECHEAP_AFFILIATE_ID
-  if (!affId) return dest
-  return `https://namecheap.pxf.io/c/${affId}/1383/1383?u=${encodeURIComponent(dest)}`
-}
+/** Our markup on top of the Dynadot wholesale price. */
+const MARKUP_USD = 5
 
 export async function GET(req: Request) {
   const supabase = await createClient()
@@ -34,16 +21,30 @@ export async function GET(req: Request) {
     ? [clean]
     : DEFAULT_TLDS.map((tld) => clean.replace(/\..+$/, '') + tld)
 
-  // Dynadot handles the availability check; Namecheap handles the purchase.
-  // Domain availability data is identical across registrars (it's all WHOIS).
-  // This avoids Namecheap's API IP-whitelisting requirement on serverless infra.
   const settled = await Promise.allSettled(domains.map((d) => checkAvailability(d)))
 
-  const results = settled.map((r, i) =>
-    r.status === 'fulfilled'
-      ? { ...r.value, buyUrl: namecheapBuyUrl(domains[i]) }
-      : { domain: domains[i], available: false, priceUsd: null, premium: false, buyUrl: namecheapBuyUrl(domains[i]), error: true },
-  )
+  const results = settled.map((r, i) => {
+    if (r.status === 'fulfilled') {
+      const { domain, available, priceUsd, premium } = r.value
+      return {
+        domain,
+        available,
+        priceUsd,
+        // finalPrice is what we charge the customer (Dynadot cost + markup).
+        // Null when Dynadot did not quote a price (e.g. unavailable or error).
+        finalPrice: priceUsd != null ? priceUsd + MARKUP_USD : null,
+        premium,
+      }
+    }
+    return {
+      domain: domains[i],
+      available: false,
+      priceUsd: null,
+      finalPrice: null,
+      premium: false,
+      error: true,
+    }
+  })
 
   return NextResponse.json({ results })
 }

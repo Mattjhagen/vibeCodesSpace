@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
+import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
-import type Stripe from 'stripe'
-const StripeConstructor = require('stripe')
 
 export async function POST(req: Request) {
   try {
@@ -9,36 +8,31 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.redirect(new URL('/login', req.url), { status: 303 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await req.formData()
-    const domain = formData.get('domain') as string
-    const targetPriceStr = formData.get('finalPrice') as string
-    const baseCostStr = formData.get('baseCost') as string
-
-    if (!domain || !targetPriceStr || !baseCostStr) {
-      return NextResponse.json({ error: 'Missing domain or price parameters' }, { status: 400 })
+    const body = await req.json()
+    const { domain, finalPrice, baseCost } = body as {
+      domain: string
+      finalPrice: number | null  // whole dollars, e.g. 15.99
+      baseCost: number           // cents, e.g. 1099
     }
 
-    const finalPriceInCents = parseInt(targetPriceStr, 10) * 100
-    const baseCostInCents = parseInt(baseCostStr, 10) * 100
+    if (!domain || finalPrice == null) {
+      return NextResponse.json({ error: 'Missing domain or price' }, { status: 400 })
+    }
 
-    const stripe = new StripeConstructor(process.env.STRIPE_SECRET_KEY as string, {
-      apiVersion: '2024-06-20' as any,
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      apiVersion: '2024-06-20' as Stripe.LatestApiVersion,
     })
 
-    // Get the workspace safely
-    const { data: memberships } = await supabase
-      .from('workspace_users')
-      .select('workspace_id')
+    const { data: workspaces } = await supabase
+      .from('workspaces')
+      .select('id')
       .eq('user_id', user.id)
       .limit(1)
 
-    let workspaceId = memberships?.[0]?.workspace_id;
-    if (!workspaceId) {
-       workspaceId = user.id;
-    }
+    const workspaceId = workspaces?.[0]?.id ?? user.id
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -49,9 +43,9 @@ export async function POST(req: Request) {
             currency: 'usd',
             product_data: {
               name: `Domain Registration: ${domain}`,
-              description: `1 Year Registration for your custom domain.`,
+              description: '1-year registration, managed for you.',
             },
-            unit_amount: finalPriceInCents,
+            unit_amount: Math.round(finalPrice * 100),
           },
           quantity: 1,
         },
@@ -61,19 +55,15 @@ export async function POST(req: Request) {
       metadata: {
         domain_purchase: 'true',
         domain_name: domain,
-        base_cost: baseCostInCents.toString(), // To double check Vercel API cost matches inside the webhook
+        base_cost: String(baseCost),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/dashboard?domain_success=true&domain=${domain}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/dashboard/domains/buy`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/dashboard?domain_success=true&domain=${encodeURIComponent(domain)}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://vibecodes.space'}/dashboard/domains`,
     })
 
-    if (session.url) {
-      return NextResponse.redirect(session.url, { status: 303 })
-    }
-
-    return NextResponse.json({ error: 'Failed to create session' }, { status: 500 })
-  } catch (error: any) {
-    console.error('Stripe Checkout Error:', error)
+    return NextResponse.json({ url: session.url })
+  } catch (error: unknown) {
+    console.error('[domain-checkout] error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
