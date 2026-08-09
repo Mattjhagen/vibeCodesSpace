@@ -34,7 +34,9 @@ export async function login(formData: FormData) {
   redirect('/dashboard')
 }
 
-export async function signup(formData: FormData) {
+export async function signup(
+  formData: FormData,
+): Promise<{ confirm_email: true } | { error: string }> {
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signUp({
@@ -46,9 +48,9 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    redirect(`/login?message=${encodeURIComponent(error.message)}`)
+    return { error: error.message }
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return { confirm_email: true }
 }
