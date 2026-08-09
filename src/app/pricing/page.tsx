@@ -37,12 +37,14 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
   const purePulsePlans = [
     {
       name: 'Starter',
+      planId: 'starter',
       price: '$20',
       description: 'Perfect for getting online fast',
       features: ['Hosting included', '2 content updates/mo', 'Bug fixes', 'Email support'],
     },
     {
       name: 'Growth',
+      planId: 'growth',
       price: '$50',
       description: 'For businesses ready to be found',
       features: ['Unlimited updates', 'Priority support (24h)', 'Basic SEO', 'Analytics + monthly report'],
@@ -50,12 +52,14 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
     },
     {
       name: 'Premium',
+      planId: 'premium',
       price: '$75',
       description: 'Full-service web presence',
       features: ['Custom development', 'Advanced SEO', 'Phone & video support', 'Quarterly design refresh', 'Social media integration'],
     },
     {
       name: 'Business',
+      planId: 'business',
       price: '$100',
       description: 'Your site, actively managed',
       features: ['Monthly planning call', '2 hrs custom work/mo', 'Ongoing performance reviews', 'All Premium features'],
@@ -165,12 +169,12 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                 </ul>
               </CardContent>
               <CardFooter>
-                <a href="https://purepulse.one" target="_blank" rel="noopener noreferrer" className="w-full">
+                <a href={`https://purepulse.one/pricing/start?plan=${plan.planId}`} target="_blank" rel="noopener noreferrer" className="w-full">
                   <Button
                     className={`w-full font-semibold ${plan.popular ? 'bg-violet-600 hover:bg-violet-500 text-white' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
                   >
-                    Book a Consultation →
+                    Get Started →
                   </Button>
                 </a>
               </CardFooter>
