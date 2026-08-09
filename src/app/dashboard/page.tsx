@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { logout } from './actions'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { checkSiteLimit, SITE_LIMITS } from '@/lib/generation-limits'
+import { checkSiteLimit, type PlanTier } from '@/lib/generation-limits'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -38,7 +38,7 @@ export default async function DashboardPage() {
   const workspace = workspaces?.[0]
 
   let sites: { id: string, name: string, theme: string, status: string }[] = []
-  let siteLimit = { allowed: true, plan: 'free' as const, count: 0, limit: 1 }
+  let siteLimit: { allowed: boolean; plan: PlanTier; count: number; limit: number } = { allowed: true, plan: 'free', count: 0, limit: 1 }
 
   if (workspace?.id) {
     const [sitesResult, limitResult] = await Promise.all([
