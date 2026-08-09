@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 // so this replaces the previous `require()` + separate `import type` pair.
 import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
+import { registerDomain, isRegisteredToUs, DynadotError } from '@/lib/dynadot'
 
 /**
  * Domain purchases charge first and register second, so every failure after
@@ -69,26 +70,6 @@ async function refundSession(
   }
 }
 
-/**
- * Whether our Vercel account holds this domain.
- *
- * Used only to resolve an ambiguous failure. `null` means we could not tell,
- * which is treated as "do not refund" — losing a refund we owe is recoverable
- * by hand, refunding a domain the customer actually received is not.
- */
-async function weOwnDomain(domainName: string): Promise<boolean | null> {
-  try {
-    const res = await fetch(
-      `https://api.vercel.com/v5/domains/${encodeURIComponent(domainName)}`,
-      { headers: { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` } }
-    )
-    if (res.ok) return true
-    if (res.status === 404) return false
-    return null
-  } catch {
-    return null
-  }
-}
 
 export async function POST(req: Request) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
@@ -113,7 +94,6 @@ export async function POST(req: Request) {
       // If this checkout was for a custom domain purchase:
       if (session.metadata?.domain_purchase === 'true') {
         const domainName = session.metadata.domain_name
-        const expectedPrice = parseInt(session.metadata.base_cost || '2000', 10) / 100
 
         if (!domainName) {
           await refundSession(stripe, session, 'missing domain_name in metadata')
@@ -135,35 +115,26 @@ export async function POST(req: Request) {
 
         let bought = false
         try {
-          const buyRes = await fetch('https://api.vercel.com/v5/domains/buy', {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${process.env.VERCEL_TOKEN}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ name: domainName, expectedPrice }),
-          })
-
-          if (!buyRes.ok) {
-            // Unambiguous: the registration did not happen. Refund.
-            const detail = await buyRes.text()
+          await registerDomain({ domain: domainName, years: 1 })
+          bought = true
+        } catch (e) {
+          if (e instanceof DynadotError) {
+            // Unambiguous registrar rejection: the domain was not registered. Refund.
             await refundSession(
               stripe,
               session,
-              `vercel buy failed ${buyRes.status}: ${detail.slice(0, 300)}`
+              `dynadot register failed: ${e.message}`
             )
             return NextResponse.json({ received: true, refunded: true })
           }
-          bought = true
-        } catch (e) {
-          // Ambiguous: the request threw, but the purchase may still have
-          // gone through. Ask before refunding.
-          const owned = await weOwnDomain(domainName)
+          // Network error — ambiguous. The registration may have gone through even
+          // though the request threw. Ask Dynadot who holds the domain before refunding.
+          const owned = await isRegisteredToUs(domainName)
           if (owned === false) {
             await refundSession(
               stripe,
               session,
-              `vercel buy threw and domain is unowned: ${
+              `dynadot threw and domain is unowned: ${
                 e instanceof Error ? e.message : String(e)
               }`
             )
