@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 export function OnboardingWizard() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [goal, setGoal] = useState('')
   const [source, setSource] = useState('')
@@ -36,6 +37,10 @@ export function OnboardingWizard() {
       const result = await completeOnboarding({ goal, source, theme, profileContext })
       
       if (result?.error) {
+        if (result.error === 'plan_limit') {
+          router.push('/pricing?reason=site_limit')
+          return
+        }
         setError(result.error)
         setIsSubmitting(false)
       }

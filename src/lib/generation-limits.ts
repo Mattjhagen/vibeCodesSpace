@@ -16,6 +16,13 @@ import { costOf, type TokenUsage } from './generation-cost'
 
 export type PlanTier = 'free' | 'pro' | 'business'
 
+/** Max sites per plan. Business is uncapped. */
+export const SITE_LIMITS: Record<PlanTier, number> = {
+  free: 1,
+  pro: 3,
+  business: Infinity,
+}
+
 /** Generations allowed inside the rolling window. */
 export const RATE_LIMIT_WINDOW_MINUTES = 10
 export const RATE_LIMIT_PER_WINDOW: Record<PlanTier, number> = {
@@ -129,6 +136,26 @@ export async function checkGenerationAllowed(
   }
 
   return { allowed: true, plan }
+}
+
+/**
+ * Returns the number of sites currently in the workspace and whether a new
+ * one can be created under the workspace's plan.
+ */
+export async function checkSiteLimit(
+  supabase: SupabaseClient,
+  workspaceId: string,
+): Promise<{ allowed: boolean; plan: PlanTier; count: number; limit: number }> {
+  const plan = await planForWorkspace(supabase, workspaceId)
+  const limit = SITE_LIMITS[plan]
+
+  const { count } = await supabase
+    .from('sites')
+    .select('id', { count: 'exact', head: true })
+    .eq('workspace_id', workspaceId)
+
+  const siteCount = count ?? 0
+  return { allowed: siteCount < limit, plan, count: siteCount, limit }
 }
 
 /**
