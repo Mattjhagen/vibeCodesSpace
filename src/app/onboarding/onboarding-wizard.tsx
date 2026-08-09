@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
 export function OnboardingWizard() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [goal, setGoal] = useState('')
   const [source, setSource] = useState('')
