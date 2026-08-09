@@ -36,6 +36,10 @@ export function OnboardingWizard() {
       const result = await completeOnboarding({ goal, source, theme, profileContext })
       
       if (result?.error) {
+        if (result.error === 'plan_limit') {
+          router.push('/pricing?reason=site_limit')
+          return
+        }
         setError(result.error)
         setIsSubmitting(false)
       }

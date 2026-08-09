@@ -2,7 +2,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Check, Wrench } from 'lucide-react'
 
-export default function PricingPage() {
+export default async function PricingPage({ searchParams }: { searchParams: Promise<{ reason?: string }> }) {
+  const { reason } = await searchParams
+  const hitLimit = reason === 'site_limit'
   const plans = [
     {
       name: 'Free',
@@ -62,6 +64,15 @@ export default function PricingPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-muted/20">
+      {hitLimit && (
+        <div className="w-full max-w-5xl mb-8 rounded-xl border border-violet-500/40 bg-violet-950/30 px-6 py-4 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <span className="text-2xl">🔒</span>
+          <div>
+            <p className="font-semibold text-violet-300">You&apos;ve hit your site limit</p>
+            <p className="text-sm text-muted-foreground">Upgrade to Pro for up to 3 sites, or Business for unlimited. Your existing sites are safe.</p>
+          </div>
+        </div>
+      )}
       <div className="text-center max-w-2xl mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <h1 className="text-4xl font-extrabold tracking-tight mb-4">Simple, transparent pricing</h1>
         <p className="text-xl text-muted-foreground">Unlock the full power of VibeCodes to grow your personal brand.</p>

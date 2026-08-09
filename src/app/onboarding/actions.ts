@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { SITE_TYPES, SiteType } from '@/lib/content-model'
 import { loadSiteContent } from '@/lib/migrate-content'
 import { startingContent } from '@/lib/site-types'
+import { checkSiteLimit } from '@/lib/generation-limits'
 
 export async function completeOnboarding(data: {
   goal: string
@@ -62,7 +63,20 @@ export async function completeOnboarding(data: {
       workspaceId = newWorkspace.id
     }
 
-    // 3. Create initial site with selected theme and generated content
+    // 3. Check site limit before creating
+    if (workspaceId) {
+      const limitCheck = await checkSiteLimit(supabase, workspaceId)
+      if (!limitCheck.allowed) {
+        return {
+          error: 'plan_limit',
+          plan: limitCheck.plan,
+          count: limitCheck.count,
+          limit: limitCheck.limit,
+        }
+      }
+    }
+
+    // 4. Create initial site with selected theme and generated content
     if (workspaceId) {
       const siteType: SiteType = SITE_TYPES.includes(data.siteType as SiteType)
         ? (data.siteType as SiteType)

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { logout } from './actions'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { checkSiteLimit, SITE_LIMITS } from '@/lib/generation-limits'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -37,17 +38,27 @@ export default async function DashboardPage() {
   const workspace = workspaces?.[0]
 
   let sites: { id: string, name: string, theme: string, status: string }[] = []
+  let siteLimit = { allowed: true, plan: 'free' as const, count: 0, limit: 1 }
+
   if (workspace?.id) {
-    const { data: sitesData, error: sitesError } = await supabase
-      .from('sites')
-      .select('*')
-      .eq('workspace_id', workspace.id)
-      .order('created_at', { ascending: false })
-    
-    if (!sitesError) {
-      sites = sitesData || []
+    const [sitesResult, limitResult] = await Promise.all([
+      supabase
+        .from('sites')
+        .select('*')
+        .eq('workspace_id', workspace.id)
+        .order('created_at', { ascending: false }),
+      checkSiteLimit(supabase, workspace.id),
+    ])
+
+    if (!sitesResult.error) {
+      sites = sitesResult.data || []
     }
+    siteLimit = limitResult
   }
+
+  const planLabel = siteLimit.plan === 'free' ? 'Free' : siteLimit.plan === 'pro' ? 'Pro' : 'Business'
+  const limitDisplay = siteLimit.limit === Infinity ? '∞' : String(siteLimit.limit)
+  const atLimit = !siteLimit.allowed
 
   return (
     <div className="flex flex-col w-full min-h-screen">
@@ -61,14 +72,39 @@ export default async function DashboardPage() {
         </div>
       </header>
       <main className="flex-1 p-8 space-y-6">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground">Welcome back, {profile.full_name || user.email}</p>
-        
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+            <p className="text-muted-foreground">Welcome back, {profile.full_name || user.email}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {siteLimit.count} / {limitDisplay} sites
+            </span>
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full ${siteLimit.plan === 'free' ? 'bg-muted text-muted-foreground' : siteLimit.plan === 'pro' ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'}`}>
+              {planLabel}
+            </span>
+            {siteLimit.plan !== 'business' && (
+              <Link href="/pricing">
+                <Button variant="outline" size="sm">Upgrade</Button>
+              </Link>
+            )}
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Link href="/onboarding?create=true" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
-            <span className="text-2xl mb-2">+</span>
-            <span className="font-medium">Create New Site</span>
-          </Link>
+          {atLimit ? (
+            <Link href="/pricing?reason=site_limit" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed border-violet-400/50 hover:bg-violet-950/20 transition-colors cursor-pointer group">
+              <span className="text-2xl mb-2">🔒</span>
+              <span className="font-medium text-center text-sm">Site limit reached</span>
+              <span className="text-xs text-violet-400 mt-1 group-hover:underline">Upgrade to add more →</span>
+            </Link>
+          ) : (
+            <Link href="/onboarding?create=true" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
+              <span className="text-2xl mb-2">+</span>
+              <span className="font-medium">Create New Site</span>
+            </Link>
+          )}
           {sites.map(site => (
             <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col p-6 hover:shadow-md transition-shadow cursor-pointer relative group">
               <h3 className="font-semibold text-lg truncate pr-8">{site.name}</h3>
