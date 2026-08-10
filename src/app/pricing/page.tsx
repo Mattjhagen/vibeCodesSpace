@@ -169,7 +169,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
                 </ul>
               </CardContent>
               <CardFooter>
-                <a href={`https://purepulse.one/pricing/start?plan=${plan.planId}`} target="_blank" rel="noopener noreferrer" className="w-full">
+                <a href={`https://login.purepulse.one/pricing/start?plan=${plan.planId}`} target="_blank" rel="noopener noreferrer" className="w-full">
                   <Button
                     className={`w-full font-semibold ${plan.popular ? 'bg-violet-600 hover:bg-violet-500 text-white' : ''}`}
                     variant={plan.popular ? 'default' : 'outline'}
