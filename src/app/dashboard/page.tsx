@@ -114,21 +114,21 @@ export default async function DashboardPage() {
             </Link>
           )}
           {sites.map(site => (
-            <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col p-6 hover:shadow-md transition-shadow cursor-pointer relative group">
-              <h3 className="font-semibold text-lg truncate pr-8">{site.name}</h3>
-              <p className="text-sm text-muted-foreground capitalize mt-1">Theme: {site.theme}</p>
-              <div className="mt-auto flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full ${site.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+            <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow flex flex-col p-5 hover:shadow-md transition-shadow relative">
+              <h3 className="font-semibold text-lg truncate">{site.name}</h3>
+              <p className="text-sm text-muted-foreground capitalize mt-0.5">Theme: {site.theme}</p>
+              <div className="mt-3 mb-4">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${site.status === 'published' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
                   {site.status}
                 </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/dashboard/sites/${site.id}/admin`}>
-                    <Button variant="ghost" size="sm">Admin</Button>
-                  </Link>
-                  <Link href={`/builder/${site.id}`}>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </Link>
-                </div>
+              </div>
+              <div className="flex gap-2 mt-auto">
+                <Link href={`/builder/${site.id}`} className="flex-1">
+                  <Button variant="default" size="sm" className="w-full">✏️ Edit Site</Button>
+                </Link>
+                <Link href={`/dashboard/sites/${site.id}/admin`}>
+                  <Button variant="outline" size="sm" className="px-3" title="Traffic, members, settings">⚙️</Button>
+                </Link>
               </div>
             </div>
           ))}
