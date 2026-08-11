@@ -40,3 +40,21 @@ export async function updateSiteContent(
   revalidatePath(`/builder/${siteId}`)
   return { success: true }
 }
+
+export async function updateSiteBranding(
+  siteId: string,
+  branding: { tab_title?: string; favicon_url?: string },
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { error } = await supabase
+    .from('sites')
+    .update({ ...branding, updated_at: new Date().toISOString() })
+    .eq('id', siteId)
+
+  if (error) return { success: false, error: error.message }
+  revalidatePath(`/builder/${siteId}`)
+  return { success: true }
+}

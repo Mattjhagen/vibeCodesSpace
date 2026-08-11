@@ -39,6 +39,7 @@ import { toast } from 'sonner'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { SITE_THEMES, themeInlineStyle } from '@/lib/site-themes'
 import { TemplatePicker } from '@/components/template-picker'
+import { SiteBrandingSettings } from '@/components/site-branding-settings'
 
 type SiteRow = {
   id: string
@@ -47,6 +48,8 @@ type SiteRow = {
   theme?: string
   subdomain?: string
   custom_domain?: string
+  tab_title?: string
+  favicon_url?: string
 }
 
 export function BuilderShell({
@@ -174,6 +177,11 @@ export function BuilderShell({
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
           <ThemeToggle />
+          <SiteBrandingSettings
+            siteId={site.id}
+            initialTabTitle={site.tab_title}
+            initialFaviconUrl={site.favicon_url}
+          />
           <BuilderEditor
             siteId={site.id}
             initialStatus={site.status}

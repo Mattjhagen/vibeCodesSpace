@@ -36,7 +36,7 @@ async function load(subdomain: string, slug?: string[]) {
 
   const { data: site } = await supabase
     .from('sites')
-    .select('id, name, theme, content, subdomain, updated_at')
+    .select('id, name, theme, content, subdomain, updated_at, tab_title, favicon_url')
     .eq('subdomain', subdomain)
     // status='published' AND suspended_at IS NULL is enforced by RLS, not here,
     // so a suspended site is invisible even if this query changes.
@@ -68,11 +68,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!loaded) return { title: 'Not found', robots: { index: false, follow: false } }
 
   const description = derivedDescription(loaded.page)
+  const title = loaded.site.tab_title
+    ? loaded.site.tab_title
+    : `${loaded.page.title} — ${loaded.site.name}`
   return {
-    title: `${loaded.page.title} — ${loaded.site.name}`,
+    title,
     description,
     openGraph: { title: loaded.page.title, description, type: 'website' },
     alternates: { canonical: `https://${subdomain}.vibecodes.space${loaded.page.slug ? `/${loaded.page.slug}` : ''}` },
+    ...(loaded.site.favicon_url ? {
+      icons: {
+        icon: loaded.site.favicon_url,
+        shortcut: loaded.site.favicon_url,
+        apple: loaded.site.favicon_url,
+      }
+    } : {}),
   }
 }
 
