@@ -97,7 +97,7 @@ export async function completeOnboarding(data: {
         initialContent = startingContent(siteType, data.goal, data.theme)
       }
 
-      const { error: siteError } = await supabase
+      const { data: newSite, error: siteError } = await supabase
         .from('sites')
         .insert({
           workspace_id: workspaceId,
@@ -106,10 +106,16 @@ export async function completeOnboarding(data: {
           status: 'draft',
           content: initialContent
         })
+        .select('id')
+        .single()
         
       if (siteError) {
         console.error('Initial Site Creation Error:', siteError)
         return { error: `Initial site creation failed: ${siteError.message}` }
+      }
+
+      if (newSite?.id) {
+        redirect(`/builder/${newSite.id}`)
       }
     }
   } catch (err: any) {
