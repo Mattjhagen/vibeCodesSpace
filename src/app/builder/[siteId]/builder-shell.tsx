@@ -40,6 +40,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { SITE_THEMES, themeInlineStyle, themesForPlan } from '@/lib/site-themes'
 import { TemplatePicker } from '@/components/template-picker'
 import { SiteBrandingSettings } from '@/components/site-branding-settings'
+import { CollaboratorsButton } from '@/components/collaborators-button'
 import type { PlanTier } from '@/lib/generation-limits'
 
 type SiteRow = {
@@ -180,6 +181,7 @@ export function BuilderShell({
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
           <ThemeToggle />
+          <CollaboratorsButton siteId={site.id} plan={plan} />
           <SiteBrandingSettings
             siteId={site.id}
             initialTabTitle={site.tab_title}
