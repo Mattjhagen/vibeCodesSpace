@@ -471,6 +471,7 @@ export function BuilderShell({
         open={templatePickerOpen}
         onClose={() => setTemplatePickerOpen(false)}
         onApply={applyTemplate}
+        plan={plan}
       />
     </div>
   )

@@ -7,16 +7,19 @@ import type { SiteContent } from '@/lib/content-model'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import type { PlanTier } from '@/lib/generation-limits'
 
 interface Props {
   open: boolean
   onClose: () => void
   onApply: (content: SiteContent, themeId: string) => void
+  plan?: PlanTier
 }
 
 const CATEGORIES = ['All', 'Personal', 'Creative', 'Business', 'Services']
+const PLAN_ORDER: Record<string, number> = { free: 0, pro: 1, business: 2 }
 
-export function TemplatePicker({ open, onClose, onApply }: Props) {
+export function TemplatePicker({ open, onClose, onApply, plan = 'free' }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [category, setCategory] = useState('All')
   const [confirming, setConfirming] = useState(false)
@@ -26,9 +29,10 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
   )
 
   const selectedTemplate = SITE_TEMPLATES.find((t) => t.id === selected)
+  const selectedLocked = selectedTemplate ? PLAN_ORDER[selectedTemplate.plan] > PLAN_ORDER[plan] : false
 
   function handleApply() {
-    if (!selectedTemplate) return
+    if (!selectedTemplate || selectedLocked) return
     onApply(selectedTemplate.content, selectedTemplate.themeId)
     setSelected(null)
     setConfirming(false)
@@ -69,6 +73,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
             {filtered.map((template) => {
               const theme = SITE_THEMES.find((t) => t.id === template.themeId)
               const isSelected = selected === template.id
+              const locked = PLAN_ORDER[template.plan] > PLAN_ORDER[plan]
               return (
                 <button
                   key={template.id}
@@ -76,6 +81,7 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
                   className={cn(
                     'text-left rounded-xl border-2 overflow-hidden transition hover:shadow-md',
                     isSelected ? 'border-primary shadow-md' : 'border-border',
+                    locked ? 'opacity-60' : '',
                   )}
                 >
                   {/* Thumbnail */}
@@ -97,7 +103,12 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
                         />
                       ))}
                     </div>
-                    {isSelected && (
+                    {locked && (
+                      <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                        🔒 {template.plan === 'pro' ? 'Pro' : 'Business'}
+                      </div>
+                    )}
+                    {isSelected && !locked && (
                       <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                         <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 text-xs font-semibold">
                           Selected ✓
@@ -129,15 +140,17 @@ export function TemplatePicker({ open, onClose, onApply }: Props) {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t shrink-0 flex items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
-            {selected
+          <p className="text-xs text-muted-foreground flex-1">
+            {selected && selectedLocked
+              ? <span>🔒 <strong>{selectedTemplate?.name}</strong> requires the <a href="/pricing" className="text-primary underline underline-offset-2">{selectedTemplate?.plan} plan</a> — upgrade to unlock.</span>
+              : selected
               ? `"${selectedTemplate?.name}" selected — this will replace your current page content.`
               : 'Select a template above to get started.'}
           </p>
           <div className="flex gap-2 shrink-0">
             <Button variant="outline" onClick={onClose}>Cancel</Button>
             <Button
-              disabled={!selected}
+              disabled={!selected || selectedLocked}
               onClick={() => {
                 if (!confirming) { setConfirming(true); return }
                 handleApply()
