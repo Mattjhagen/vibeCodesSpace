@@ -35,6 +35,7 @@ export function StarField() {
     ]
 
     function resize() {
+      if (!canvas) return
       W = canvas.width  = window.innerWidth
       H = canvas.height = window.innerHeight
       initStars()
