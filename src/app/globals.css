@@ -154,3 +154,28 @@
     @apply font-sans;
   }
 }
+/* ── PurePulse footer ── */
+.purepulse-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: rgba(244,244,255,0.35);
+  z-index: 10;
+  font-family: var(--font-geist-mono);
+}
+
+.purepulse-footer a {
+  color: #A066FF;
+  text-decoration: none;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.purepulse-footer a:hover {
+  color: #7B2FFF;
+  opacity: 0.85;
+}

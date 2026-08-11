@@ -27,6 +27,9 @@ export default function RootLayout({
           <StarField />
           {children}
           <Toaster />
+          <footer className="purepulse-footer">
+            Powered by <a href="https://purepulse.one" target="_blank" rel="noopener">PurePulse.one</a>
+          </footer>
         </ThemeProvider>
         <Analytics />
       </body>
