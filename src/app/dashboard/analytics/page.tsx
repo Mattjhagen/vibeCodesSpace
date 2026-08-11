@@ -18,7 +18,7 @@ export default async function AnalyticsPage() {
   const { data: workspace } = await supabase
     .from('workspaces')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (!workspace) redirect('/dashboard')

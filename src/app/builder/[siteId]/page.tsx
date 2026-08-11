@@ -22,7 +22,7 @@ export default async function BuilderPage(props: { params: Promise<{ siteId: str
   const { data: workspace } = await supabase
     .from('workspaces')
     .select('id')
-    .eq('owner_id', user.id)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   const plan = workspace ? await planForWorkspace(supabase, workspace.id) : 'free'
