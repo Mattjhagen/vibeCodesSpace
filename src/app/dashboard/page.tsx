@@ -107,6 +107,11 @@ export default async function DashboardPage() {
               <span className="text-2xl mb-2">+</span>
               <span className="font-medium">Create New Site</span>
             </Link>
+            <Link href="/import" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed border-cyan-500/30 hover:bg-cyan-950/20 transition-colors cursor-pointer">
+              <span className="text-2xl mb-2">🌐</span>
+              <span className="font-medium">Migrate Existing Site</span>
+              <span className="text-xs text-muted-foreground mt-1">Paste domain → we rebuild it</span>
+            </Link>
           )}
           {sites.map(site => (
             <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col p-6 hover:shadow-md transition-shadow cursor-pointer relative group">
