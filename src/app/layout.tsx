@@ -24,7 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name='impact-site-verification' value='22578d8f-0e76-481c-9bd2-e3dd2e4aa7d8' />
+        {/* eslint-disable-next-line @next/next/no-head-element */}
+        <meta name="impact-site-verification" content="22578d8f-0e76-481c-9bd2-e3dd2e4aa7d8" />
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
