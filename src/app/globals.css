@@ -179,3 +179,13 @@
   color: #7B2FFF;
   opacity: 0.85;
 }
+
+/* ── Starfield homepage fix ── */
+/* Force dark obsidian bg on html, make body transparent so canvas shows */
+html {
+  background: #07070D !important;
+}
+
+body {
+  background: transparent !important;
+}
