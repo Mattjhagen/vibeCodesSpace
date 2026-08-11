@@ -96,7 +96,7 @@ export const TEXT_SIZES: TextSize[] = ['sm', 'base', 'lg', 'xl', '2xl']
 export type Block =
   | { id: string; type: 'heading'; level: 1 | 2 | 3; text: string; font?: TextFont; align?: TextAlign }
   | { id: string; type: 'text'; text: string; font?: TextFont; size?: TextSize; align?: TextAlign }
-  | { id: string; type: 'image'; src: string; alt: string }
+  | { id: string; type: 'image'; src: string; alt: string; href?: string }
   | { id: string; type: 'button'; label: string; href: string }
   | { id: string; type: 'list'; ordered: boolean; items: string[] }
   | { id: string; type: 'cards'; items: { title: string; body: string; href: string }[] }
@@ -104,7 +104,7 @@ export type Block =
   | { id: string; type: 'quote'; text: string; attribution: string }
   | { id: string; type: 'contact'; email: string; phone: string; note: string }
   | { id: string; type: 'divider' }
-  | { id: string; type: 'gallery'; items: { src: string; alt: string; caption: string }[] }
+  | { id: string; type: 'gallery'; items: { src: string; alt: string; caption: string; href?: string }[] }
 
 export type BlockType = Block['type']
 
@@ -142,7 +142,7 @@ export function parseBlock(input: unknown): Block | null {
       const src = sanitizeImageSrc(raw.src)
       // alt is required for accessibility; an empty string is a valid,
       // meaningful value (decorative), so only the src gates the block.
-      return src ? { id, type: 'image', src, alt: str(raw.alt) } : null
+      return src ? { id, type: 'image', src, alt: str(raw.alt), ...(raw.href ? { href: sanitizeUrl(raw.href as string) } : {}) } : null
     }
     case 'button': {
       const label = str(raw.label, 120)
@@ -202,9 +202,9 @@ export function parseBlock(input: unknown): Block | null {
             .map((i) => {
               const g = (i ?? {}) as Record<string, unknown>
               const src = sanitizeImageSrc(g.src)
-              return src ? { src, alt: str(g.alt), caption: str(g.caption, 200) } : null
+              return src ? { src, alt: str(g.alt), caption: str(g.caption, 200), ...(g.href ? { href: sanitizeUrl(g.href as string) } : {}) } : null
             })
-            .filter((g): g is { src: string; alt: string; caption: string } => g !== null)
+            .filter((g): g is { src: string; alt: string; caption: string; href?: string } => g !== null)
             .slice(0, 50)
         : []
       return { id, type: 'gallery', items }

@@ -144,11 +144,11 @@ function BlockView({
       )
     }
 
-    case 'image':
+    case 'image': {
       // Plain <img>: sites render on arbitrary hosts, so next/image's loader
       // and remote-pattern allowlist would be a liability here, not a win.
       // eslint-disable-next-line @next/next/no-img-element
-      return (
+      const imgEl = (
         <img
           src={sanitizeImageSrc(block.src)}
           alt={block.alt}
@@ -157,6 +157,16 @@ function BlockView({
           className="w-full h-auto rounded-lg"
         />
       )
+      if (block.href) {
+        const href = sanitizeUrl(block.href)
+        return (
+          <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+            {imgEl}
+          </a>
+        )
+      }
+      return imgEl
+    }
 
     case 'button': {
       const href = sanitizeUrl(block.href)
@@ -271,9 +281,10 @@ function BlockView({
       if (!block.items.length) return null
       return (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 w-full">
-          {block.items.map((item, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <figure key={i} className="overflow-hidden rounded-lg">
+          {block.items.map((item, i) => {
+            const href = item.href ? sanitizeUrl(item.href) : null
+            const imgEl = (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={sanitizeImageSrc(item.src)}
                 alt={item.alt}
@@ -281,13 +292,22 @@ function BlockView({
                 decoding="async"
                 className="w-full h-48 object-cover"
               />
-              {item.caption && (
-                <figcaption className="mt-1 text-xs text-muted-foreground text-center px-1">
-                  {item.caption}
-                </figcaption>
-              )}
-            </figure>
-          ))}
+            )
+            return (
+              <figure key={i} className="overflow-hidden rounded-lg">
+                {href ? (
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="block hover:opacity-90 transition-opacity">
+                    {imgEl}
+                  </a>
+                ) : imgEl}
+                {item.caption && (
+                  <figcaption className="mt-1 text-xs text-muted-foreground text-center px-1">
+                    {item.caption}
+                  </figcaption>
+                )}
+              </figure>
+            )
+          })}
         </div>
       )
   }
