@@ -37,8 +37,9 @@ export function SiteBrandingSettings({ siteId, initialTabTitle, initialFaviconUr
     try {
       const body = new FormData()
       body.append('file', file)
-      const url = await uploadSiteImage(siteId, body)
-      setFaviconUrl(url)
+      const result = await uploadSiteImage(siteId, body)
+      if (!result.ok) throw new Error(result.error)
+      setFaviconUrl(result.url)
       toast.success('Favicon uploaded')
     } catch {
       toast.error('Upload failed')
