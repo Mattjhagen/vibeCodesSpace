@@ -79,8 +79,7 @@ export function OnboardingWizard() {
 
   const isStep2Disabled = step === 2 && (
     !source ||
-    (source === 'linkedin' && (!profileContext || profileContext === 'https://linkedin.com/in/')) ||
-    (source === 'resume' && !profileContext)
+    ((source === 'linkedin' || source === 'resume') && !profileContext)
   )
 
   return (
@@ -120,16 +119,13 @@ export function OnboardingWizard() {
             <h3 className="text-lg font-medium">How should we build your <span className="text-primary">{goal?.label}</span>?</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {[
-                { id: 'linkedin', title: '🔗 LinkedIn', desc: 'AI fills it in from your profile URL' },
+                { id: 'linkedin', title: '🔗 LinkedIn', desc: 'Paste your LinkedIn About & experience' },
                 { id: 'resume',   title: '📋 Resume',   desc: 'Paste your resume — AI builds the site' },
                 { id: 'manual',   title: '✏️ Manual',   desc: 'Start with a blank template' },
               ].map(s => (
                 <div
                   key={s.id}
-                  onClick={() => {
-                    setSource(s.id)
-                    if (s.id === 'linkedin' && !profileContext) setProfileContext('https://linkedin.com/in/')
-                  }}
+                  onClick={() => setSource(s.id)}
                   className={`p-4 border rounded-xl cursor-pointer transition-all duration-200 ${source === s.id ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary' : 'hover:border-primary/50 bg-card hover:bg-accent/20'}`}
                 >
                   <div className="font-semibold mb-1 text-sm">{s.title}</div>
@@ -139,9 +135,14 @@ export function OnboardingWizard() {
             </div>
             {source === 'linkedin' && (
               <div className="mt-4 space-y-2 animate-in fade-in duration-200">
-                <Label>LinkedIn URL</Label>
-                <Input value={profileContext} onChange={e => setProfileContext(e.target.value)} placeholder="https://linkedin.com/in/yourname" />
-                <p className="text-xs text-muted-foreground">Our AI will use this to build your site content automatically.</p>
+                <Label>Paste your LinkedIn About section & experience</Label>
+                <p className="text-xs text-muted-foreground">Go to your LinkedIn profile → click "About" → copy the text. Then copy your Experience section too. Paste it all below.</p>
+                <Textarea
+                  placeholder="Paste your LinkedIn About section and work experience here..."
+                  className="min-h-[160px]"
+                  onChange={e => setProfileContext(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground italic">Our AI will use this to write your site content automatically.</p>
               </div>
             )}
             {source === 'resume' && (
