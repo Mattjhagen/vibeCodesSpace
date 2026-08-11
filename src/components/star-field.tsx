@@ -19,7 +19,7 @@ export function StarField() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
     if (!ctx) return
 
     let W = 0, H = 0
