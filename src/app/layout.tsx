@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { StarField } from "@/components/star-field";
+import { PurePulseFooter } from "@/components/purepulse-footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,9 +28,7 @@ export default function RootLayout({
           <StarField />
           {children}
           <Toaster />
-          <footer className="purepulse-footer">
-            Powered by <a href="https://purepulse.one" target="_blank" rel="noopener">PurePulse.one</a>
-          </footer>
+          <PurePulseFooter />
         </ThemeProvider>
         <Analytics />
       </body>
