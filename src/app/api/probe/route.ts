@@ -26,8 +26,13 @@ export async function GET(req: NextRequest) {
       signal: AbortSignal.timeout(10000),
       cache: 'no-store',
     })
-    // Any HTTP response means DNS + SSL are both working
-    return Response.json({ ok: res.ok, stage: 'live' as ProbeStage, status: res.status })
+    // DNS and TLS may be working while the tenant still returns a 404. Only a
+    // successful response means the newly published site is actually live.
+    return Response.json({
+      ok: res.ok,
+      stage: res.ok ? 'live' as ProbeStage : 'unknown' as ProbeStage,
+      status: res.status,
+    })
   } catch (err) {
     const msg = String(err)
     // ENOTFOUND / ESERVFAIL = DNS hasn't propagated yet

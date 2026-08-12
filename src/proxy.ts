@@ -76,13 +76,13 @@ export function customDomainFromHost(rawHost: string | null): string | null {
 /**
  * Paths that stay with the app even on a tenant hostname.
  *
- * Only the public form endpoint. A tenant's contact form has to post
- * somewhere, and posting to its own origin avoids CORS entirely — but the
- * exemption is a single prefix on purpose. Exempting `/api` wholesale would
- * expose every app route on every customer domain.
+ * The public form endpoint and the publish-status probe. A tenant's contact
+ * form has to post somewhere, and the builder checks that the new subdomain
+ * is reachable through the same origin. Do not exempt `/api` wholesale — that
+ * would expose every app route on every customer domain.
  */
 function appOwnedOnTenantHost(pathname: string): boolean {
-  return pathname.startsWith('/api/forms/')
+  return pathname.startsWith('/api/forms/') || pathname === '/api/probe'
 }
 
 export async function proxy(request: NextRequest) {
