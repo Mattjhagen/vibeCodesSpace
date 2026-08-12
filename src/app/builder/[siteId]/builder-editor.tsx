@@ -43,27 +43,15 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
 
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const probeRef = useRef<(sub: string, attempt: number) => void>(() => {})
 
   const isPublished = status === 'published' && publishedUrl
 
   const stopTimers = useCallback(() => {
     if (pollRef.current) clearTimeout(pollRef.current)
     if (countRef.current) clearInterval(countRef.current)
-  }, [])
-
-  const scheduleNextPoll = useCallback((sub: string, attempt: number) => {
-    setCountdown(POLL_INTERVAL)
-    countRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          if (countRef.current) clearInterval(countRef.current)
-          return 0
-        }
-        return c - 1
-      })
-    }, 1000)
-    pollRef.current = setTimeout(() => probe(sub, attempt), POLL_INTERVAL * 1000)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    pollRef.current = null
+    countRef.current = null
   }, [])
 
   const probe = useCallback(async (sub: string, attempt: number) => {
@@ -81,19 +69,41 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
     } catch {
       // network error — keep trying
     }
-    scheduleNextPoll(sub, attempt + 1)
-  }, [stopTimers, scheduleNextPoll])
+    // A failed probe may complete after the dialog has been closed or a newer
+    // probe has started. Keep exactly one countdown and retry pending.
+    stopTimers()
+    setCountdown(POLL_INTERVAL)
+    countRef.current = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          if (countRef.current) clearInterval(countRef.current)
+          return 0
+        }
+        return c - 1
+      })
+    }, 1000)
+    pollRef.current = setTimeout(
+      () => probeRef.current(sub, attempt + 1),
+      POLL_INTERVAL * 1000,
+    )
+  }, [stopTimers])
+
+  useEffect(() => {
+    probeRef.current = probe
+  }, [probe])
 
   useEffect(() => {
     if (open && phase === 'going-live' && subdomain) {
-      probe(subdomain, 0)
+      // Start on the next task so opening the dialog can paint before the
+      // first probe updates its progress state.
+      pollRef.current = setTimeout(() => probeRef.current(subdomain, 0), 0)
     }
-    return () => { if (!open) stopTimers() }
-  }, [open, phase, subdomain, probe, stopTimers])
+    return stopTimers
+  }, [open, phase, subdomain, stopTimers])
 
   useEffect(() => () => stopTimers(), [stopTimers])
 
-  function startGoingLive(sub: string) {
+  function startGoingLive() {
     setCountdown(POLL_INTERVAL)
     setAttempts(0)
     setProbeStage('dns')
@@ -132,7 +142,7 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
       }
     }
     setPublishing(false)
-    startGoingLive(subdomain)
+    startGoingLive()
   }
 
   // First publish or address change
@@ -148,7 +158,7 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
       setPublishedUrl(result.url)
       setStatus('published')
       setShowAddressChange(false)
-      startGoingLive(subdomain.trim())
+      startGoingLive()
     } else {
       toast.error(result.error)
     }
@@ -187,7 +197,14 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
         </a>
       )}
 
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        // The builder can contain a large editable document. Preserve the
+        // accessible focus trap without synchronously disabling every outside
+        // element when this status dialog opens.
+        modal="trap-focus"
+      >
         <DialogContent className="sm:max-w-md">
 
           {/* ── Confirm update phase (already published) ── */}
