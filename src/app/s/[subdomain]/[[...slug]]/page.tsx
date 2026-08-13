@@ -1,4 +1,4 @@
-/**
+a/**
  * A published tenant site.
  *
  * Reached only by rewrite from `proxy.ts` when the Host header is
@@ -20,6 +20,12 @@ import { createClient } from '@supabase/supabase-js'
 import { PageView } from '@/components/site-engine/render'
 import { derivedDescription, findPage } from '@/lib/content-model'
 import { loadSiteContent } from '@/lib/migrate-content'
+
+// Tenant pages render arbitrary, runtime-created sites straight from the
+// database and must reflect publish/unpublish immediately. Without this,
+// Next statically caches the route and will keep serving a stale 404 that
+// was rendered while the page was briefly broken.
+export const dynamic = 'force-dynamic'
 
 type Props = { params: Promise<{ subdomain: string; slug?: string[] }> }
 
