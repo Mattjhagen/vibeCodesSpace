@@ -1,17 +1,22 @@
-a/**
- * A published tenant site.
+/**
+ * A published tenant site on the customer's own domain.
  *
- * Reached only by rewrite from `proxy.ts` when the Host header is
- * `<subdomain>.vibecodes.space`, so the page runs on the tenant's own origin.
+ * Reached only by rewrite from `proxy.ts` when the Host header is neither the
+ * app nor a `*.vibecodes.space` subdomain. Identical content to
+ * `/s/[subdomain]`, differing only in how the site is found and what the
+ * canonical URL says — the customer's domain is the canonical one once it is
+ * connected, otherwise search engines index the subdomain and the domain they
+ * paid for never ranks.
  *
- * Reads through a bare anon client rather than the cookie-aware server client.
- * A tenant page has no business touching the app's session: cookies would not
- * be sent cross-origin anyway, but constructing a client that *looks* for them
- * on this path invites someone to later "fix" it into working.
+ * Two independent gates have to pass for anything to render, and neither is
+ * checked in this file:
  *
- * The RLS policy added in the publishing migration is what makes this readable
- * at all, and it is also the enforcement point for suspension — a suspended
- * site stops matching the policy, so it 404s without any check here.
+ *   1. `custom_domains` RLS exposes the row only when `connected` — both the
+ *      ownership TXT record and the pointing record verified.
+ *   2. `sites` RLS exposes the row only when published and not suspended.
+ *
+ * So an unverified claim, or a verified domain on a suspended site, 404s
+ * without a conditional here that someone could later "simplify" away.
  */
 
 import type { Metadata } from 'next'
@@ -27,7 +32,7 @@ import { loadSiteContent } from '@/lib/migrate-content'
 // was rendered while the page was briefly broken.
 export const dynamic = 'force-dynamic'
 
-type Props = { params: Promise<{ subdomain: string; slug?: string[] }> }
+type Props = { params: Promise<{ host: string; slug?: string[] }> }
 
 function anonClient() {
   return createClient(
@@ -37,15 +42,21 @@ function anonClient() {
   )
 }
 
-async function load(subdomain: string, slug?: string[]) {
+async function load(host: string, slug?: string[]) {
   const supabase = anonClient()
+
+  const { data: domain } = await supabase
+    .from('custom_domains')
+    .select('site_id')
+    .eq('host', host.toLowerCase())
+    .maybeSingle()
+
+  if (!domain) return null
 
   const { data: site } = await supabase
     .from('sites')
-    .select('id, name, theme, content, subdomain, updated_at, tab_title, favicon_url')
-    .eq('subdomain', subdomain)
-    // status='published' AND suspended_at IS NULL is enforced by RLS, not here,
-    // so a suspended site is invisible even if this query changes.
+    .select('id, name, theme, content, subdomain, updated_at')
+    .eq('id', domain.site_id)
     .maybeSingle()
 
   if (!site) return null
@@ -69,32 +80,26 @@ async function recordView(siteId: string, path: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { subdomain, slug } = await params
-  const loaded = await load(subdomain, slug)
+  const { host, slug } = await params
+  const loaded = await load(host, slug)
   if (!loaded) return { title: 'Not found', robots: { index: false, follow: false } }
 
   const description = derivedDescription(loaded.page)
-  const title = loaded.site.tab_title
-    ? loaded.site.tab_title
-    : `${loaded.page.title} — ${loaded.site.name}`
+  const path = loaded.page.slug ? `/${loaded.page.slug}` : ''
   return {
-    title,
+    title: `${loaded.page.title} — ${loaded.site.name}`,
     description,
     openGraph: { title: loaded.page.title, description, type: 'website' },
-    alternates: { canonical: `https://${subdomain}.vibecodes.space${loaded.page.slug ? `/${loaded.page.slug}` : ''}` },
-    ...(loaded.site.favicon_url ? {
-      icons: {
-        icon: loaded.site.favicon_url,
-        shortcut: loaded.site.favicon_url,
-        apple: loaded.site.favicon_url,
-      }
-    } : {}),
+    // Canonical points at the custom domain, not the subdomain: the same
+    // content is reachable at both, and the customer's domain is the one that
+    // should accumulate the ranking.
+    alternates: { canonical: `https://${host}${path}` },
   }
 }
 
-export default async function TenantPage({ params }: Props) {
-  const { subdomain, slug } = await params
-  const loaded = await load(subdomain, slug)
+export default async function CustomDomainPage({ params }: Props) {
+  const { host, slug } = await params
+  const loaded = await load(host, slug)
   if (!loaded) notFound()
 
   await recordView(loaded.site.id, '/' + (slug ?? []).join('/'))

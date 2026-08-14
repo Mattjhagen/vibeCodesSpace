@@ -9,14 +9,17 @@ export interface SiteTheme {
   name: string
   description: string
   palette: [string, string, string, string] // bg, fg, primary, accent — for swatches
+  plan: 'free' | 'pro' | 'business' // minimum plan required
   vars: Record<string, string>
 }
 
 export const SITE_THEMES: SiteTheme[] = [
+  // ── FREE themes ──────────────────────────────────────────────────────────
   {
     id: 'clean',
     name: 'Clean White',
     description: 'Simple and timeless',
+    plan: 'free',
     palette: ['#ffffff', '#111111', '#111111', '#f5f5f5'],
     vars: {
       '--background': '#ffffff',
@@ -38,6 +41,7 @@ export const SITE_THEMES: SiteTheme[] = [
     id: 'warm',
     name: 'Warm Linen',
     description: 'Cozy and personal',
+    plan: 'free',
     palette: ['#FAF7F2', '#2C1A0E', '#7C4D2E', '#EDE0D0'],
     vars: {
       '--background': '#FAF7F2',
@@ -56,9 +60,34 @@ export const SITE_THEMES: SiteTheme[] = [
     },
   },
   {
+    id: 'midnight',
+    name: 'Midnight',
+    description: 'Dark, bold, striking',
+    plan: 'free',
+    palette: ['#0F0F13', '#FAFAFA', '#7C3AED', '#1E1B4B'],
+    vars: {
+      '--background': '#0F0F13',
+      '--foreground': '#FAFAFA',
+      '--card': '#1A1A22',
+      '--card-foreground': '#FAFAFA',
+      '--primary': '#7C3AED',
+      '--primary-foreground': '#FAFAFA',
+      '--secondary': '#1E1B4B',
+      '--secondary-foreground': '#FAFAFA',
+      '--muted': '#1E1E2A',
+      '--muted-foreground': '#A1A1AA',
+      '--border': '#2D2D3D',
+      '--input': '#2D2D3D',
+      '--radius': '0.75rem',
+    },
+  },
+
+  // ── PRO themes ($12/mo) ───────────────────────────────────────────────────
+  {
     id: 'ocean',
     name: 'Ocean Blue',
     description: 'Professional and trustworthy',
+    plan: 'pro',
     palette: ['#F0F7FF', '#0A1628', '#0369A1', '#BAE6FD'],
     vars: {
       '--background': '#F0F7FF',
@@ -80,6 +109,7 @@ export const SITE_THEMES: SiteTheme[] = [
     id: 'forest',
     name: 'Forest',
     description: 'Natural and grounded',
+    plan: 'pro',
     palette: ['#F4F7F0', '#1A2E1A', '#166534', '#BBF7D0'],
     vars: {
       '--background': '#F4F7F0',
@@ -98,30 +128,10 @@ export const SITE_THEMES: SiteTheme[] = [
     },
   },
   {
-    id: 'midnight',
-    name: 'Midnight',
-    description: 'Dark, bold, striking',
-    palette: ['#0F0F13', '#FAFAFA', '#7C3AED', '#1E1B4B'],
-    vars: {
-      '--background': '#0F0F13',
-      '--foreground': '#FAFAFA',
-      '--card': '#1A1A22',
-      '--card-foreground': '#FAFAFA',
-      '--primary': '#7C3AED',
-      '--primary-foreground': '#FAFAFA',
-      '--secondary': '#1E1B4B',
-      '--secondary-foreground': '#FAFAFA',
-      '--muted': '#1E1E2A',
-      '--muted-foreground': '#A1A1AA',
-      '--border': '#2D2D3D',
-      '--input': '#2D2D3D',
-      '--radius': '0.75rem',
-    },
-  },
-  {
     id: 'coral',
     name: 'Coral Sunset',
     description: 'Warm and energetic',
+    plan: 'pro',
     palette: ['#FFF8F6', '#1A1A1A', '#E54D2E', '#FFEDD5'],
     vars: {
       '--background': '#FFF8F6',
@@ -143,6 +153,7 @@ export const SITE_THEMES: SiteTheme[] = [
     id: 'slate',
     name: 'Slate',
     description: 'Modern and corporate',
+    plan: 'pro',
     palette: ['#F1F5F9', '#0F172A', '#3B82F6', '#E2E8F0'],
     vars: {
       '--background': '#F1F5F9',
@@ -164,6 +175,7 @@ export const SITE_THEMES: SiteTheme[] = [
     id: 'rose',
     name: 'Rose',
     description: 'Elegant and refined',
+    plan: 'pro',
     palette: ['#FFF1F3', '#1A0A0F', '#E11D48', '#FFE4E6'],
     vars: {
       '--background': '#FFF1F3',
@@ -181,6 +193,184 @@ export const SITE_THEMES: SiteTheme[] = [
       '--radius': '0.75rem',
     },
   },
+  {
+    id: 'amber',
+    name: 'Amber',
+    description: 'Bold and energetic',
+    plan: 'pro',
+    palette: ['#FFFBEB', '#1C1400', '#D97706', '#FDE68A'],
+    vars: {
+      '--background': '#FFFBEB',
+      '--foreground': '#1C1400',
+      '--card': '#ffffff',
+      '--card-foreground': '#1C1400',
+      '--primary': '#D97706',
+      '--primary-foreground': '#ffffff',
+      '--secondary': '#FDE68A',
+      '--secondary-foreground': '#1C1400',
+      '--muted': '#FEF3C7',
+      '--muted-foreground': '#92400E',
+      '--border': '#FDE68A',
+      '--input': '#FDE68A',
+      '--radius': '0.5rem',
+    },
+  },
+  {
+    id: 'graphite',
+    name: 'Graphite',
+    description: 'Sophisticated dark neutral',
+    plan: 'pro',
+    palette: ['#18181B', '#F4F4F5', '#71717A', '#27272A'],
+    vars: {
+      '--background': '#18181B',
+      '--foreground': '#F4F4F5',
+      '--card': '#27272A',
+      '--card-foreground': '#F4F4F5',
+      '--primary': '#A1A1AA',
+      '--primary-foreground': '#18181B',
+      '--secondary': '#3F3F46',
+      '--secondary-foreground': '#F4F4F5',
+      '--muted': '#27272A',
+      '--muted-foreground': '#71717A',
+      '--border': '#3F3F46',
+      '--input': '#3F3F46',
+      '--radius': '0.375rem',
+    },
+  },
+  {
+    id: 'lavender',
+    name: 'Lavender',
+    description: 'Soft and creative',
+    plan: 'pro',
+    palette: ['#FAF5FF', '#2E1065', '#7C3AED', '#EDE9FE'],
+    vars: {
+      '--background': '#FAF5FF',
+      '--foreground': '#2E1065',
+      '--card': '#ffffff',
+      '--card-foreground': '#2E1065',
+      '--primary': '#7C3AED',
+      '--primary-foreground': '#ffffff',
+      '--secondary': '#EDE9FE',
+      '--secondary-foreground': '#2E1065',
+      '--muted': '#F3F0FF',
+      '--muted-foreground': '#6D28D9',
+      '--border': '#DDD6FE',
+      '--input': '#DDD6FE',
+      '--radius': '1rem',
+    },
+  },
+  {
+    id: 'mint',
+    name: 'Mint',
+    description: 'Fresh and modern',
+    plan: 'pro',
+    palette: ['#F0FDF4', '#052E16', '#059669', '#A7F3D0'],
+    vars: {
+      '--background': '#F0FDF4',
+      '--foreground': '#052E16',
+      '--card': '#ffffff',
+      '--card-foreground': '#052E16',
+      '--primary': '#059669',
+      '--primary-foreground': '#ffffff',
+      '--secondary': '#A7F3D0',
+      '--secondary-foreground': '#052E16',
+      '--muted': '#DCFCE7',
+      '--muted-foreground': '#065F46',
+      '--border': '#6EE7B7',
+      '--input': '#6EE7B7',
+      '--radius': '0.5rem',
+    },
+  },
+
+  // ── BUSINESS themes ($49/mo) ──────────────────────────────────────────────
+  {
+    id: 'obsidian',
+    name: 'Obsidian',
+    description: 'Ultra-premium dark with violet glow',
+    plan: 'business',
+    palette: ['#07070D', '#F4F4FF', '#7B2FFF', '#00D4FF'],
+    vars: {
+      '--background': '#07070D',
+      '--foreground': '#F4F4FF',
+      '--card': '#0F0F1A',
+      '--card-foreground': '#F4F4FF',
+      '--primary': '#7B2FFF',
+      '--primary-foreground': '#F4F4FF',
+      '--secondary': '#1A1A2E',
+      '--secondary-foreground': '#F4F4FF',
+      '--muted': '#12121F',
+      '--muted-foreground': '#A066FF',
+      '--border': 'rgba(123,47,255,0.25)',
+      '--input': 'rgba(123,47,255,0.15)',
+      '--radius': '0.75rem',
+    },
+  },
+  {
+    id: 'terminal',
+    name: 'Terminal',
+    description: 'Hacker aesthetic — amber on black',
+    plan: 'business',
+    palette: ['#0A0A00', '#FFB300', '#FFB300', '#1A1A00'],
+    vars: {
+      '--background': '#0A0A00',
+      '--foreground': '#FFB300',
+      '--card': '#111100',
+      '--card-foreground': '#FFB300',
+      '--primary': '#FFB300',
+      '--primary-foreground': '#0A0A00',
+      '--secondary': '#1A1A00',
+      '--secondary-foreground': '#FFB300',
+      '--muted': '#151500',
+      '--muted-foreground': '#CC8800',
+      '--border': 'rgba(255,179,0,0.2)',
+      '--input': 'rgba(255,179,0,0.1)',
+      '--radius': '0rem',
+    },
+  },
+  {
+    id: 'paper',
+    name: 'Paper',
+    description: 'Editorial newspaper style',
+    plan: 'business',
+    palette: ['#F5F0E8', '#1A1208', '#1A1208', '#E8E0D0'],
+    vars: {
+      '--background': '#F5F0E8',
+      '--foreground': '#1A1208',
+      '--card': '#EDE8DC',
+      '--card-foreground': '#1A1208',
+      '--primary': '#1A1208',
+      '--primary-foreground': '#F5F0E8',
+      '--secondary': '#E8E0D0',
+      '--secondary-foreground': '#1A1208',
+      '--muted': '#E0D8C8',
+      '--muted-foreground': '#5C4A32',
+      '--border': '#C8B89A',
+      '--input': '#C8B89A',
+      '--radius': '0rem',
+    },
+  },
+  {
+    id: 'aurora',
+    name: 'Aurora',
+    description: 'Gradient-rich dark with cyan & magenta',
+    plan: 'business',
+    palette: ['#050510', '#E0F0FF', '#00D4FF', '#FF00FF'],
+    vars: {
+      '--background': '#050510',
+      '--foreground': '#E0F0FF',
+      '--card': '#0A0A20',
+      '--card-foreground': '#E0F0FF',
+      '--primary': '#00D4FF',
+      '--primary-foreground': '#050510',
+      '--secondary': '#1A0030',
+      '--secondary-foreground': '#E0F0FF',
+      '--muted': '#0F0F25',
+      '--muted-foreground': '#7090C0',
+      '--border': 'rgba(0,212,255,0.2)',
+      '--input': 'rgba(0,212,255,0.1)',
+      '--radius': '1rem',
+    },
+  },
 ]
 
 export function findTheme(id: string): SiteTheme {
@@ -191,3 +381,10 @@ export function findTheme(id: string): SiteTheme {
 export function themeInlineStyle(themeId: string): Record<string, string> {
   return findTheme(themeId).vars
 }
+
+/** Themes available to a given plan tier. */
+export function themesForPlan(plan: 'free' | 'pro' | 'business'): SiteTheme[] {
+  const order = { free: 0, pro: 1, business: 2 }
+  return SITE_THEMES.filter((t) => order[t.plan] <= order[plan])
+}
+

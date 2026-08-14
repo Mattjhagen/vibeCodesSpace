@@ -65,6 +65,9 @@ export default async function DashboardPage() {
       <header className="flex h-16 items-center border-b px-6 justify-between bg-card text-card-foreground">
         <h1 className="text-lg font-bold">{workspace?.name || 'VibeCodes Workspace'}</h1>
         <div className="flex items-center gap-2">
+          <Link href="/dashboard/analytics">
+            <Button variant="ghost" size="sm">Analytics</Button>
+          </Link>
           <ThemeToggle />
           <form action={logout}>
             <Button variant="ghost" size="sm" type="submit">Sign out</Button>
@@ -100,59 +103,99 @@ export default async function DashboardPage() {
               <span className="text-xs text-violet-400 mt-1 group-hover:underline">Upgrade to add more →</span>
             </Link>
           ) : (
-            <Link href="/onboarding?create=true" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
-              <span className="text-2xl mb-2">+</span>
-              <span className="font-medium">Create New Site</span>
-            </Link>
+            <>
+              <Link href="/onboarding?create=true" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer">
+                <span className="text-2xl mb-2">+</span>
+                <span className="font-medium">Create New Site</span>
+              </Link>
+              <Link href="/import" className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col items-center justify-center p-6 border-dashed border-cyan-500/30 hover:bg-cyan-950/20 transition-colors cursor-pointer">
+                <span className="text-2xl mb-2">🌐</span>
+                <span className="font-medium">Migrate Existing Site</span>
+                <span className="text-xs text-muted-foreground mt-1">Paste domain → we rebuild it</span>
+              </Link>
+            </>
           )}
           {sites.map(site => (
-            <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow h-40 flex flex-col p-6 hover:shadow-md transition-shadow cursor-pointer relative group">
-              <h3 className="font-semibold text-lg truncate pr-8">{site.name}</h3>
-              <p className="text-sm text-muted-foreground capitalize mt-1">Theme: {site.theme}</p>
-              <div className="mt-auto flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full ${site.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+            <div key={site.id} className="rounded-xl border bg-card text-card-foreground shadow flex flex-col p-5 hover:shadow-md transition-shadow relative">
+              <h3 className="font-semibold text-lg truncate">{site.name}</h3>
+              <p className="text-sm text-muted-foreground capitalize mt-0.5">Theme: {site.theme}</p>
+              <div className="mt-3 mb-4">
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${site.status === 'published' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
                   {site.status}
                 </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href={`/dashboard/sites/${site.id}/admin`}>
-                    <Button variant="ghost" size="sm">Admin</Button>
-                  </Link>
-                  <Link href={`/builder/${site.id}`}>
-                    <Button variant="outline" size="sm">Edit</Button>
-                  </Link>
-                </div>
+              </div>
+              <div className="flex gap-2 mt-auto">
+                <Link href={`/builder/${site.id}`} className="flex-1">
+                  <Button variant="default" size="sm" className="w-full">✏️ Edit Site</Button>
+                </Link>
+                <Link href={`/dashboard/sites/${site.id}/admin`}>
+                  <Button variant="outline" size="sm" className="px-3" title="Traffic, members, settings">⚙️</Button>
+                </Link>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="rounded-xl border bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-violet-500/30 p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-widest text-violet-400">Done-for-you</span>
+        {/* Plan-aware bottom section */}
+        {siteLimit.plan === 'free' ? (
+          <div className="rounded-xl border bg-gradient-to-r from-violet-950/40 to-indigo-950/40 border-violet-500/30 p-6 flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs font-semibold uppercase tracking-widest text-violet-400">Done-for-you</span>
+              </div>
+              <h3 className="text-xl font-bold mb-1">Rather have us build it?</h3>
+              <p className="text-sm text-muted-foreground max-w-lg">
+                Skip the editor entirely. PurePulse handles design, development, SEO, and ongoing updates — starting at <strong className="text-foreground">$20/mo</strong> after a $150 deposit. 12-month plans, no surprises.
+              </p>
+              <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
+                <li>✓ Starter $20/mo — hosting + 2 updates</li>
+                <li>✓ Growth $50/mo — unlimited updates + SEO</li>
+                <li>✓ Premium $75/mo — custom dev + phone support</li>
+                <li>✓ Business $100/mo — monthly planning call</li>
+              </ul>
             </div>
-            <h3 className="text-xl font-bold mb-1">Rather have us build it?</h3>
-            <p className="text-sm text-muted-foreground max-w-lg">
-              Skip the editor entirely. PurePulse handles design, development, SEO, and ongoing updates — starting at <strong className="text-foreground">$20/mo</strong> after a $150 deposit. 12-month plans, no surprises.
-            </p>
-            <ul className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-muted-foreground">
-              <li>✓ Starter $20/mo — hosting + 2 updates</li>
-              <li>✓ Growth $50/mo — unlimited updates + SEO</li>
-              <li>✓ Premium $75/mo — custom dev + phone support</li>
-              <li>✓ Business $100/mo — monthly planning call</li>
-            </ul>
+            <a href="https://purepulse.one" target="_blank" rel="noopener noreferrer" className="shrink-0">
+              <Button className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
+                Book a Consultation →
+              </Button>
+            </a>
           </div>
-          <a
-            href="https://purepulse.one"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="shrink-0"
-          >
-            <Button className="bg-violet-600 hover:bg-violet-500 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
-              Book a Consultation →
-            </Button>
-          </a>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Priority support */}
+            <div className="rounded-xl border border-violet-500/30 bg-violet-950/20 p-5 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚡</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-violet-400">Priority Support</span>
+              </div>
+              <p className="text-sm font-semibold">24h response guaranteed</p>
+              <p className="text-xs text-muted-foreground">Email us directly and we'll get back to you within one business day — your plan puts you at the front of the queue.</p>
+              <a href="mailto:matty@purepulse.one" className="text-xs text-violet-400 hover:text-violet-300 transition-colors mt-auto">matty@purepulse.one →</a>
+            </div>
+
+            {/* Early access */}
+            <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-5 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🚀</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Early Access</span>
+              </div>
+              <p className="text-sm font-semibold">New features first</p>
+              <p className="text-xs text-muted-foreground">As a {planLabel} member you get access to features before they roll out to free users — including new templates, themes, and builder tools.</p>
+              <span className="text-xs text-cyan-400 mt-auto">Active on your account ✓</span>
+            </div>
+
+            {/* Custom branding / done-for-you */}
+            <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-5 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎨</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-amber-400">Done-for-you</span>
+              </div>
+              <p className="text-sm font-semibold">Want us to build it instead?</p>
+              <p className="text-xs text-muted-foreground">PurePulse members get a discounted consultation rate. Skip the builder and let us handle design, dev, and SEO for you.</p>
+              <a href="https://purepulse.one" target="_blank" rel="noopener noreferrer" className="text-xs text-amber-400 hover:text-amber-300 transition-colors mt-auto">Book a consultation →</a>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

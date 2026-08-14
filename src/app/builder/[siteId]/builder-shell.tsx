@@ -37,8 +37,11 @@ import { BuilderEditor } from './builder-editor'
 import { updateSiteContent } from './actions'
 import { toast } from 'sonner'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { SITE_THEMES, themeInlineStyle } from '@/lib/site-themes'
+import { SITE_THEMES, themeInlineStyle, themesForPlan } from '@/lib/site-themes'
 import { TemplatePicker } from '@/components/template-picker'
+import { SiteBrandingSettings } from '@/components/site-branding-settings'
+import { CollaboratorsButton } from '@/components/collaborators-button'
+import type { PlanTier } from '@/lib/generation-limits'
 
 type SiteRow = {
   id: string
@@ -47,14 +50,18 @@ type SiteRow = {
   theme?: string
   subdomain?: string
   custom_domain?: string
+  tab_title?: string
+  favicon_url?: string
 }
 
 export function BuilderShell({
   site,
   initialContent,
+  plan = 'free',
 }: {
   site: SiteRow
   initialContent: SiteContent
+  plan?: PlanTier
 }) {
   const [history, setHistory] = useState<History<SiteContent>>(() =>
     initHistory(initialContent),
@@ -174,6 +181,12 @@ export function BuilderShell({
             {isSaving ? 'Saving...' : 'Save Draft'}
           </Button>
           <ThemeToggle />
+          <CollaboratorsButton siteId={site.id} plan={plan} />
+          <SiteBrandingSettings
+            siteId={site.id}
+            initialTabTitle={site.tab_title}
+            initialFaviconUrl={site.favicon_url}
+          />
           <BuilderEditor
             siteId={site.id}
             initialStatus={site.status}
@@ -381,29 +394,42 @@ export function BuilderShell({
             <section className="space-y-3 border-t pt-4">
               <span className="font-medium text-sm">Theme</span>
               <div className="grid grid-cols-4 gap-2">
-                {SITE_THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    title={t.name}
-                    onClick={() => setTheme(t.id)}
-                    className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition',
-                      theme === t.id ? 'border-primary' : 'border-transparent hover:border-border',
-                    )}
-                  >
-                    {/* Color swatch */}
-                    <div
-                      className="w-8 h-8 rounded-full border border-border/50 shadow-sm"
-                      style={{ background: `linear-gradient(135deg, ${t.palette[0]} 50%, ${t.palette[2]} 50%)` }}
-                    />
-                    <span className="text-[9px] text-muted-foreground leading-tight text-center">{t.name}</span>
-                  </button>
-                ))}
+                {SITE_THEMES.map((t) => {
+                  const planOrder = { free: 0, pro: 1, business: 2 }
+                  const locked = planOrder[t.plan] > planOrder[plan]
+                  return (
+                    <button
+                      key={t.id}
+                      title={locked ? `${t.name} — ${t.plan} plan required` : t.name}
+                      onClick={() => !locked && setTheme(t.id)}
+                      disabled={locked}
+                      className={cn(
+                        'relative flex flex-col items-center gap-1.5 rounded-lg border-2 p-2 transition',
+                        theme === t.id ? 'border-primary' : 'border-transparent hover:border-border',
+                        locked ? 'opacity-40 cursor-not-allowed' : '',
+                      )}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full border border-border/50 shadow-sm"
+                        style={{ background: `linear-gradient(135deg, ${t.palette[0]} 50%, ${t.palette[2]} 50%)` }}
+                      />
+                      {locked && (
+                        <span className="absolute top-1 right-1 text-[8px]">🔒</span>
+                      )}
+                      <span className="text-[9px] text-muted-foreground leading-tight text-center">{t.name}</span>
+                    </button>
+                  )
+                })}
               </div>
               {SITE_THEMES.find((t) => t.id === theme) && (
                 <p className="text-[11px] text-muted-foreground">
                   {SITE_THEMES.find((t) => t.id === theme)?.description}
                 </p>
+              )}
+              {plan === 'free' && (
+                <a href="/pricing" className="text-[11px] text-primary underline underline-offset-2">
+                  Upgrade to Pro to unlock more themes →
+                </a>
               )}
             </section>
           </div>
@@ -447,6 +473,7 @@ export function BuilderShell({
         open={templatePickerOpen}
         onClose={() => setTemplatePickerOpen(false)}
         onApply={applyTemplate}
+        plan={plan}
       />
     </div>
   )

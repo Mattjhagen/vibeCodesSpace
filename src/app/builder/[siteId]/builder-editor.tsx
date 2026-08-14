@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ComponentProps, type KeyboardEvent } from 'react'
 import { toast } from 'sonner'
 import { publishSite } from './publish-action'
 
@@ -25,6 +25,7 @@ type Phase = 'form' | 'confirm-update' | 'going-live' | 'live'
 type ProbeStage = 'dns' | 'ssl' | 'live' | 'unknown'
 
 const POLL_INTERVAL = 30
+const SUBDOMAIN_INPUT_DELAY = 120
 
 export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveContent }: Props) {
   const [open, setOpen] = useState(false)
@@ -43,27 +44,15 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
 
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const probeRef = useRef<(sub: string, attempt: number) => void>(() => {})
 
   const isPublished = status === 'published' && publishedUrl
 
   const stopTimers = useCallback(() => {
     if (pollRef.current) clearTimeout(pollRef.current)
     if (countRef.current) clearInterval(countRef.current)
-  }, [])
-
-  const scheduleNextPoll = useCallback((sub: string, attempt: number) => {
-    setCountdown(POLL_INTERVAL)
-    countRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          if (countRef.current) clearInterval(countRef.current)
-          return 0
-        }
-        return c - 1
-      })
-    }, 1000)
-    pollRef.current = setTimeout(() => probe(sub, attempt), POLL_INTERVAL * 1000)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    pollRef.current = null
+    countRef.current = null
   }, [])
 
   const probe = useCallback(async (sub: string, attempt: number) => {
@@ -81,19 +70,41 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
     } catch {
       // network error — keep trying
     }
-    scheduleNextPoll(sub, attempt + 1)
-  }, [stopTimers, scheduleNextPoll])
+    // A failed probe may complete after the dialog has been closed or a newer
+    // probe has started. Keep exactly one countdown and retry pending.
+    stopTimers()
+    setCountdown(POLL_INTERVAL)
+    countRef.current = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          if (countRef.current) clearInterval(countRef.current)
+          return 0
+        }
+        return c - 1
+      })
+    }, 1000)
+    pollRef.current = setTimeout(
+      () => probeRef.current(sub, attempt + 1),
+      POLL_INTERVAL * 1000,
+    )
+  }, [stopTimers])
+
+  useEffect(() => {
+    probeRef.current = probe
+  }, [probe])
 
   useEffect(() => {
     if (open && phase === 'going-live' && subdomain) {
-      probe(subdomain, 0)
+      // Start on the next task so opening the dialog can paint before the
+      // first probe updates its progress state.
+      pollRef.current = setTimeout(() => probeRef.current(subdomain, 0), 0)
     }
-    return () => { if (!open) stopTimers() }
-  }, [open, phase, subdomain, probe, stopTimers])
+    return stopTimers
+  }, [open, phase, subdomain, stopTimers])
 
   useEffect(() => () => stopTimers(), [stopTimers])
 
-  function startGoingLive(sub: string) {
+  function startGoingLive() {
     setCountdown(POLL_INTERVAL)
     setAttempts(0)
     setProbeStage('dns')
@@ -132,23 +143,25 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
       }
     }
     setPublishing(false)
-    startGoingLive(subdomain)
+    startGoingLive()
   }
 
   // First publish or address change
-  async function handlePublish() {
-    if (!subdomain.trim()) return
+  async function handlePublish(requestedSubdomain = subdomain) {
+    const normalizedSubdomain = requestedSubdomain.trim()
+    if (!normalizedSubdomain) return
     setPublishing(true)
     if (onSaveContent) {
       await onSaveContent()
     }
-    const result = await publishSite(siteId, subdomain.trim())
+    const result = await publishSite(siteId, normalizedSubdomain)
     setPublishing(false)
     if (result.ok) {
       setPublishedUrl(result.url)
       setStatus('published')
       setShowAddressChange(false)
-      startGoingLive(subdomain.trim())
+      setSubdomain(normalizedSubdomain)
+      startGoingLive()
     } else {
       toast.error(result.error)
     }
@@ -187,7 +200,14 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
         </a>
       )}
 
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog
+        open={open}
+        onOpenChange={handleOpenChange}
+        // The builder can contain a large editable document. Preserve the
+        // accessible focus trap without synchronously disabling every outside
+        // element when this status dialog opens.
+        modal="trap-focus"
+      >
         <DialogContent className="sm:max-w-md">
 
           {/* ── Confirm update phase (already published) ── */}
@@ -222,9 +242,10 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
                     <div className="space-y-3">
                       <p className="text-xs text-muted-foreground">Enter a new address for your site:</p>
                       <div className="flex items-center gap-0">
-                        <Input
-                          value={subdomain}
-                          onChange={(e) => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        <SubdomainInput
+                          initialValue={subdomain}
+                          onValueChange={setSubdomain}
+                          onSubmit={handlePublish}
                           placeholder="your-name"
                           className="rounded-r-none border-r-0 font-mono text-sm"
                         />
@@ -234,7 +255,7 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
                       </div>
                       <Button
                         className="w-full"
-                        onClick={handlePublish}
+                        onClick={() => handlePublish()}
                         disabled={publishing || !subdomain.trim()}
                       >
                         {publishing ? 'Updating…' : 'Update address & publish'}
@@ -263,15 +284,13 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
                 <div className="space-y-2">
                   <Label htmlFor="subdomain">Site address</Label>
                   <div className="flex items-center gap-0">
-                    <Input
+                    <SubdomainInput
                       id="subdomain"
-                      value={subdomain}
-                      onChange={(e) =>
-                        setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
-                      }
+                      initialValue={subdomain}
+                      onValueChange={setSubdomain}
+                      onSubmit={handlePublish}
                       placeholder="your-name"
                       className="rounded-r-none border-r-0 font-mono"
-                      onKeyDown={(e) => e.key === 'Enter' && handlePublish()}
                       autoFocus
                     />
                     <span className="flex h-9 items-center rounded-r-md border border-input bg-muted px-3 text-sm text-muted-foreground font-mono whitespace-nowrap">
@@ -284,7 +303,7 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
-                  <Button onClick={handlePublish} disabled={publishing || !subdomain.trim()}>
+                  <Button onClick={() => handlePublish()} disabled={publishing || !subdomain.trim()}>
                     {publishing ? 'Publishing…' : 'Publish'}
                   </Button>
                 </div>
@@ -380,6 +399,45 @@ export function BuilderEditor({ siteId, initialStatus, initialSubdomain, onSaveC
       </Dialog>
     </>
   )
+}
+
+function SubdomainInput({
+  initialValue,
+  onValueChange,
+  onSubmit,
+  ...props
+}: {
+  initialValue: string
+  onValueChange: (value: string) => void
+  onSubmit: (value: string) => void
+} & Omit<ComponentProps<typeof Input>, 'value' | 'defaultValue' | 'onChange' | 'onKeyDown' | 'onSubmit'>) {
+  const [value, setValue] = useState(initialValue)
+  const commitRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (commitRef.current) clearTimeout(commitRef.current)
+  }, [])
+
+  function commit(next: string) {
+    if (commitRef.current) clearTimeout(commitRef.current)
+    onValueChange(next)
+  }
+
+  function handleChange(next: string) {
+    const normalized = next.toLowerCase().replace(/[^a-z0-9-]/g, '')
+    setValue(normalized)
+    if (commitRef.current) clearTimeout(commitRef.current)
+    commitRef.current = setTimeout(() => onValueChange(normalized), SUBDOMAIN_INPUT_DELAY)
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== 'Enter') return
+    event.preventDefault()
+    commit(value)
+    onSubmit(value)
+  }
+
+  return <Input {...props} value={value} onChange={(event) => handleChange(event.target.value)} onKeyDown={handleKeyDown} />
 }
 
 function StatusRow({

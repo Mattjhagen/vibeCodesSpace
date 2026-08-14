@@ -233,6 +233,11 @@ export function BlockEditor({
             value={block.alt}
             onChange={(v) => patch({ alt: v })}
           />
+          <Field
+            label="Link URL (optional — clicking image opens this)"
+            value={(block as { href?: string }).href ?? ''}
+            onChange={(v) => patch({ href: v })}
+          />
         </div>
       )
 
@@ -546,6 +551,25 @@ function GalleryBlockEditor({
                 >
                   ✕
                 </button>
+                {/* Replace photo button */}
+                <label className="absolute top-1 left-1 rounded-full bg-black/60 text-white w-5 h-5 flex items-center justify-center text-[10px] hover:bg-blue-600 transition cursor-pointer" title="Replace photo">
+                  ↑
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/avif"
+                    className="sr-only"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const body = new FormData()
+                      body.append('file', file)
+                      const result = await uploadSiteImage(siteId, body)
+                      if (result.ok) updateItem(i, { src: result.url })
+                      else toast.error(result.error)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
                 <div className="p-1.5 space-y-1">
                   <input
                     className="w-full text-[10px] border border-border rounded px-1.5 py-0.5 bg-transparent placeholder:text-muted-foreground/50"
@@ -558,6 +582,12 @@ function GalleryBlockEditor({
                     placeholder="Caption (optional)"
                     value={item.caption}
                     onChange={(e) => updateItem(i, { caption: e.target.value })}
+                  />
+                  <input
+                    className="w-full text-[10px] border border-border rounded px-1.5 py-0.5 bg-transparent placeholder:text-muted-foreground/50"
+                    placeholder="Link URL (optional)"
+                    value={(item as { href?: string }).href ?? ''}
+                    onChange={(e) => updateItem(i, { href: e.target.value })}
                   />
                 </div>
               </div>

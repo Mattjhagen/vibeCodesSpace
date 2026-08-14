@@ -3,15 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/utils/supabase/server'
 import { dnsInstructions } from '@/lib/custom-domain'
 import { ConnectDomains, type DomainRow } from './connect-domains'
+import { planForWorkspace } from '@/lib/generation-limits'
 
-/**
- * The screen a customer uses to connect a domain they already own.
- *
- * The DNS records are rendered server-side from the stored token rather than
- * returned by a check call, so they are visible on first load and after a
- * refresh — a customer who closes the tab mid-setup must not lose the record
- * they were told to add.
- */
 export default async function ConnectDomainPage() {
   const supabase = await createClient()
 
@@ -28,6 +21,27 @@ export default async function ConnectDomainPage() {
 
   const workspace = workspaces?.[0]
 
+  // Custom domains are a Business plan feature
+  if (workspace) {
+    const plan = await planForWorkspace(supabase, workspace.id)
+    if (plan !== 'business') {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 text-center space-y-4">
+          <div className="text-4xl">🔒</div>
+          <h1 className="text-2xl font-bold">Custom Domains — Business Plan</h1>
+          <p className="text-muted-foreground max-w-md">
+            Connect your own domain (like <span className="font-mono">yourname.com</span>) to your vibeCodes site. This feature is included in the Business plan at $49/mo.
+          </p>
+          <Link href="/pricing" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-semibold hover:opacity-90 transition">
+            Upgrade to Business →
+          </Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
+            ← Back to Dashboard
+          </Link>
+        </div>
+      )
+    }
+  }
   const { data: sites } = workspace
     ? await supabase
         .from('sites')
