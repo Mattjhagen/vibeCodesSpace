@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { StarField } from "@/components/star-field";
 import { PurePulseFooter } from "@/components/purepulse-footer";
+import { VibeChat } from "@/components/vibe-chat";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <PurePulseFooter />
+          <VibeChat />
         </ThemeProvider>
         <Analytics />
       </body>
