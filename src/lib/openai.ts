@@ -2,8 +2,13 @@ import Anthropic from '@anthropic-ai/sdk'
 import OpenAI from 'openai'
 import { SiteContent } from './site-generation'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+function getAnthropic(): Anthropic {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY || 'dummy-anthropic-key' })
+}
+
+function getOpenAI(): OpenAI {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy-openai-key' })
+}
 
 async function fetchLinkedInProfile(url: string): Promise<string> {
   try {
@@ -46,6 +51,7 @@ Make the copy professional, engaging, and highly specific to the user's context.
 }
 
 async function generateWithClaude(goal: string, resolvedContext: string): Promise<SiteContent> {
+  const anthropic = getAnthropic()
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-5-20251101',
     max_tokens: 2048,
@@ -57,6 +63,7 @@ async function generateWithClaude(goal: string, resolvedContext: string): Promis
 }
 
 async function generateWithOpenAI(goal: string, resolvedContext: string): Promise<SiteContent> {
+  const openai = getOpenAI()
   const response = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [

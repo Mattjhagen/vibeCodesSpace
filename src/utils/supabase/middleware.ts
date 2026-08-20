@@ -6,12 +6,9 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
-
-
-  
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key',
     {
       cookies: {
         getAll() {
@@ -30,9 +27,13 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // ignore
+  }
 
   const { pathname } = request.nextUrl
   const isPublicPath =
@@ -41,7 +42,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/auth') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/update-password') ||
-    pathname.startsWith('/pricing')
+    pathname.startsWith('/pricing') ||
+    pathname.startsWith('/api/stripe')
 
   const isProtectedPath =
     pathname.startsWith('/dashboard') ||

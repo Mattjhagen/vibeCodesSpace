@@ -1,4 +1,4 @@
-a/**
+/**
  * A published tenant site.
  *
  * Reached only by rewrite from `proxy.ts` when the Host header is
