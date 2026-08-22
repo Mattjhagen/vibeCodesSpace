@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { checkAvailability } from '@/lib/dynadot'
+import { checkAvailability } from '@/lib/porkbun'
 
 const DEFAULT_TLDS = ['.com', '.net', '.org', '.io', '.co', '.dev']
 
-/** Our markup on top of the Dynadot wholesale price. */
-const MARKUP_USD = 5
+// Passed through at Porkbun's wholesale price, no markup — decided 2026-08-22.
 
 export async function GET(req: Request) {
   const supabase = await createClient()
@@ -30,9 +29,12 @@ export async function GET(req: Request) {
         domain,
         available,
         priceUsd,
-        // finalPrice is what we charge the customer (Dynadot cost + markup).
-        // Null when Dynadot did not quote a price (e.g. unavailable or error).
-        finalPrice: priceUsd != null ? priceUsd + MARKUP_USD : null,
+        // finalPrice is what we charge the customer — equal to priceUsd since
+        // there's no markup. Kept as a separate field so the UI and the
+        // Stripe checkout line item don't need to change if that ever
+        // reverses. Null when Porkbun did not quote a price (e.g.
+        // unavailable or error).
+        finalPrice: priceUsd,
         premium,
       }
     }
