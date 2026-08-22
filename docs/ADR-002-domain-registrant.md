@@ -8,6 +8,45 @@ Date: 2026-08-01.
 
 ---
 
+## Update 2026-08-22 — registrar swapped: Dynadot → Porkbun
+
+The registrar client is now `src/lib/porkbun.ts`, not `src/lib/dynadot.ts`
+(kept in the repo for reference, no longer imported anywhere). Same public
+interface, so the failure taxonomy in "Money" below and the Stripe webhook's
+charge-first/refund-on-failure/verify-on-ambiguity logic are unchanged.
+
+Everything this ADR says about **why the customer must be the registrant** —
+PII/DPA, ICANN verification, the 60-day transfer lock, renewal risk — applies
+identically to Porkbun. Two things do NOT carry over automatically and need
+re-doing against the new vendor:
+
+1. **A DPA with Porkbun**, not Dynadot, is required before the first real
+   registration.
+2. **The renewal/verification pipeline described below (60/30/7-day notices,
+   retry-on-failure, grace/redemption tracking) was never built for Dynadot
+   either** — it's still open, now against Porkbun.
+
+**Known gap, unchanged by the swap:** the Stripe webhook does not pass a
+registrant contact, so live registrations go to Porkbun's account-default
+contact — the reseller model — which is the opposite of what this ADR
+decides. `registerDomain()` in `porkbun.ts` accepts a `registrantContact`
+argument for exactly this reason, but nothing calls it yet. Wiring it up means
+building a form to collect the customer's legal name/address/phone before
+checkout, which is its own scoped piece of work (and the DPA above needs to
+exist first, since that data starts flowing to Porkbun the moment it's
+collected). Until that ships, **this ADR's central decision is not actually
+in effect** — flagging that explicitly rather than letting the presence of
+`ADR-002.md` imply it's handled.
+
+The Porkbun client is also **unverified against a live key** — see the
+warning at the top of `porkbun.ts`. Get a `pk1_sb_` sandbox key from
+https://porkbun.com/account/api and run `checkDomain` + a `dryRun:true`
+`create` before any of this touches a real customer.
+
+---
+
+---
+
 ## Decision
 
 **The customer is the registrant of record, with their own contact data.**

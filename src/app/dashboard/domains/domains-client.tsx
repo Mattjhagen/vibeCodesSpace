@@ -268,7 +268,7 @@ export function DomainsPage() {
       )}
 
       <p className="text-center text-[11px] text-muted-foreground/60">
-        Domain registration powered by Dynadot
+        Domain registration powered by Porkbun
       </p>
     </div>
   )

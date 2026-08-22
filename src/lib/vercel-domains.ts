@@ -2,10 +2,10 @@
  * Attaching a connected domain to the hosting project, which is what actually
  * issues its certificate.
  *
- * This is Vercel as the HOST, not as the registrar. The registrar question —
- * Vercel Domains vs Dynadot, see ADR-002 — is still open and does not affect
- * this file: a domain the customer already owns has to be attached to whatever
- * serves it regardless of where they bought it.
+ * This is Vercel as the HOST, not as the registrar. The registrar (Porkbun,
+ * see ADR-002) is a separate concern and does not affect this file: a domain
+ * the customer already owns has to be attached to whatever serves it
+ * regardless of where they bought it.
  *
  * Certificates are not requested explicitly. Vercel issues one once the domain
  * is attached to the project and its DNS resolves here, so "issue a

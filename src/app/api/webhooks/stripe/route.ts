@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 // so this replaces the previous `require()` + separate `import type` pair.
 import Stripe from 'stripe'
 import { createClient } from '@/utils/supabase/server'
-import { registerDomain, isRegisteredToUs, DynadotError } from '@/lib/dynadot'
+import { registerDomain, isRegisteredToUs, PorkbunError } from '@/lib/porkbun'
 
 /**
  * Domain purchases charge first and register second, so every failure after
@@ -115,26 +115,34 @@ export async function POST(req: Request) {
 
         let bought = false
         try {
-          await registerDomain({ domain: domainName, years: 1 })
+          // Idempotency key derived from the session id, same pattern as the
+          // refund below — a Stripe webhook retry replays the original
+          // Porkbun response instead of registering (and being charged for)
+          // the domain a second time.
+          await registerDomain({
+            domain: domainName,
+            years: 1,
+            idempotencyKey: `domain-register-${session.id}`,
+          })
           bought = true
         } catch (e) {
-          if (e instanceof DynadotError) {
+          if (e instanceof PorkbunError) {
             // Unambiguous registrar rejection: the domain was not registered. Refund.
             await refundSession(
               stripe,
               session,
-              `dynadot register failed: ${e.message}`
+              `porkbun register failed: ${e.message}`
             )
             return NextResponse.json({ received: true, refunded: true })
           }
           // Network error — ambiguous. The registration may have gone through even
-          // though the request threw. Ask Dynadot who holds the domain before refunding.
+          // though the request threw. Ask Porkbun who holds the domain before refunding.
           const owned = await isRegisteredToUs(domainName)
           if (owned === false) {
             await refundSession(
               stripe,
               session,
-              `dynadot threw and domain is unowned: ${
+              `porkbun threw and domain is unowned: ${
                 e instanceof Error ? e.message : String(e)
               }`
             )
